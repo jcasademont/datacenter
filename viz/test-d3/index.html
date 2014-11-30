@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3 Test</title>
+    <script type="text/javascript" src="d3/d3.js"></script>
+	</head>
+	<body>
+		<div id="control">
+			<input id="slider" type="range" name="slider" min="0" max="0" value="0" step="1"/>
+		</div>
+		<div id="layout"></div>
+		<script type="text/javascript">
+
+			d3.xml("layout.svg", "image/svg+xml", function(xml) {
+				var importedNode = document.importNode(xml.documentElement, true);
+				d3.select("#layout").node().appendChild(importedNode);
+
+				d3.csv("data.csv", function(d) {
+
+						var array = [];
+						for( var i in d ) {
+							if (i != "Date time" && d.hasOwnProperty(i)){
+								       array.push(Math.round(parseFloat(d[i])));
+								    }
+						}
+
+						return array;
+
+					}, function(data) {
+
+						console.log(data);
+
+						d3.select("#slider").attr("max", data.length).attr("width", "100%");
+
+						var dataset = data;
+
+						d3.select("#slider").on('input', function(d) {
+						  var current = parseInt(this.value);
+						  var new_data = dataset[current];
+
+						  rerender(new_data);
+						});
+
+						var scale = d3.scale.linear().domain([15,33]).range(["green","red"]);
+
+						var svg = d3.select("#layout svg");
+
+						svg.selectAll("rect")
+								.data(dataset[0])
+								.style("fill", function(d) {
+									return scale(d);
+								});
+
+						function rerender(data) {
+
+							svg.selectAll("rect")
+									.data(data)
+									.style("fill", function(d) {
+										return scale(d);
+									});
+
+						}
+
+				});
+
+			});
+
+		</script>
+	</body>
+</html>
