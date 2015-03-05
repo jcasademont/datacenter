@@ -1,0 +1,147 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usetikzlibrary{arrows}
+\usepackage[super, sort, numbers]{natbib}
+\setcitestyle{square}
+
+\title{Interim Report}
+\author{Jean Casademont}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+The need for data center is never-endingly growing. As the major internet company are collecting and processing more and more data, with the democratisation of cloud computing service, the data centers are a corner-stone of Internet infrastructure. And the energy consumed by these data center is enormous. In the US alone, in 2013, the data centers used 91 billion kilowatt-hours and the consumption should reached 139 billion kWh in 2020. It amounts respectfully to 9 billion and 13.7 billion US dollars\cite{CW:2014}.
+
+Unfortunately, a large amount a this energy is simply wasted. Thus, a data center can consume 0.7 kWh in cooling for every kilowatt-hours used for computing. This is due to overly conservative cooling policy.
+In order to improve the efficiency of those data center we propose a model which can be used to simulate the environment inside a data center and train a controller which would optimise its energy consumption.
+
+\section{Background}
+
+\subsection{Data center management}
+
+Data centers cooling system are traditionally controlled by a simple algorithm. Similar to a thermostat, it compares the supplied desire temperature of the data center with the return hot air at the Computer Room Air Conditioning (CRAC) units. This very simple controller is often conservative to make sure that all areas of the data center are below a given temperature, above which the sustainability of the equipment could be at risk. As a consequence of its conservativeness and lack of finer controls, this cooling strategy is far from being efficient.
+
+A lot of research have been made to increase the efficiency of the data center in term of operating cost. Early efforts were made to improve the layout of data centers. Methods such as hot/cold aisle containment, which consists of preventing the mixing of cold and hot air, are now broadly used in the industry. This rule of thumb methods could be complemented by computational fluid dynamics (CFD)\cite{Rambo:2007} analysis to further improve the layout of a data center. However, the CFD analysis, which simulates the airflows within the data center under analysis, is computationally intensive and is only relevant for the data center under test.
+
+Other techniques focus on a better management of the workload distribution between servers. Thus, by allocating jobs so that the workload is uniformly distributed between servers, we get a uniform distribution of the temperature across the data center and an optimal supply temperature can then be computed\cite{Parolini:2008}. One can also detect when an idle server can be switched off to save energy. This task is not straightforward since a server being restarted needs a setup time before being operational\cite{Pakbaznia:2009}\cite{Gandhi:2011}.
+These techniques improve the efficiency data centers but keep controlling the cooling system in a naive way.
+
+With the increase availability of cheap sensor, a finer measurement of the state of a data center is possible and can lead to truly dynamical cooling system\cite{Bash:2006}. The method presented while using a dynamical cooling strategy is only reacting to the data presently measured and lack a model to be able to predict future data. Moreover, it needs a calibration phase to tune the sensor response to a given data center.
+
+Data from those sensor have been used to model data centers and predict its future state. For instance, Google uses artificial neural network to predict the Power usage effectiveness (PUE) of its data centers\cite{Gao:2014}. PUE is a ratio of the total amount of energy used to the energy used for computing tasks. It is a widely used indicator of the effectiveness of a data center. This model of the PUE is used to predict the effect of parameters change on the effectiveness of data centers.
+
+\subsection{Modelling}
+
+\subsubsection{Correlation Analysis}
+To help in the modelling of our system, we need to understand the relationships between our variables. One common way to do that is to study the correlation between two variables. The correlation is measured by the Pearson coefficient defined as:
+
+\begin{equation}
+    r = \frac{cov(X,Y)}{\sigma_X \sigma_Y} = \frac{\sum_{i}^{n} (X_i - \mu_X)(Y_i - \mu_Y)}{\sqrt{\sum_{i}^{n} (X_i - \mu_X)}\sqrt{\sum_{i}^{n} (Y_i - \mu_Y)}}
+\end{equation}
+
+where $X$ and $Y$ are the two variables, $\sigma_X$ and $\sigma_Y$ are their respective standard deviation and $\mu_X$, $\mu_Y$ their respective mean.
+
+The Pearson coefficient is a number between $[-1,1]$ and represent the linear relationship between the two variables. $r = 1$ means there is a perfect linear relationship between $X$ and $Y$. $r = -1$ also means a perfect linear relation but when $X$ increases, $Y$ decreases.
+A strong correlation between two variables should not be viewed as a causal relation between those but rather that the behaviour of the two variables is similar, whether it is due to a common cause or not.
+
+Given our data, by plotting the Pearson coefficient of each rack temperature against each other we can see patterns appearing especially that the temperature of racks close to each other tend to be highly correlated (See figure~\ref{fig:corr_mat})
+
+For instance, we can see that racks Q20, Q23, Q25, N19, N22 and N25 are highly correlated and are situated in the same area (figure~\ref{fig:layout})
+
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.4]{corr_mat_7.png}
+    \caption{Color map showing the Pearson coefficient every rack's temperature with each other.}
+    \label{fig:corr_mat}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.7]{layout_1.png}
+    \caption{Layout of the data center}
+    \label{fig:layout}
+\end{figure}
+
+\clearpage
+\subsubsection{Gaussian Process\cite{bishop2007}}
+Gaussian Process is a very flexible approach that was successfully applied in various settings: blood and stream water temperature prediction, wind power forecasting...
+
+A Gaussian Process defined a probabilistic distribution over functions. This distribution is refined using only the data available, without assuming any form of functions.
+
+The Gaussian Process is completely defined by a mean and covariance function. The mean function is rarely known and is often set to zero. As for the covariance function it influence the shape of the functions since it controls how similar inputs will have similar outputs.
+
+Gaussian Process regression can be used to predict data. As it is a Bayesian method, it not only returns one single output but a Gaussian distribution around this output ( assuming the mean function is zero).
+
+The major drawback of the Gaussian Process is that it needs to invert a $N$x$N$ matrix which as a complexity of $O(N^3)$ where $N$ is the number of data points. This means that $N$ cannot be mush more than 1000.
+
+\subsubsection{Markov Random Field\cite{bishop2007}}
+A Markov Random Field (MRF), also known as Markov network, is an undirected graph, whose nodes are random variables and edge probabilistic relationships. The graph expresses the joint probability over all the variables $p(X)$.
+
+In a MRF, a variable is conditionally independent from all the other variables given its neighbours ie: $p(x_i|X \setminus \{x_i\}) = p(x_i|ne(x_i))$ where $ne(x_i)$ represents the variables in the neighbourhood of $x_i$.
+
+We can introduce the concept of clique, a clique is a set of nodes which are all directly connected together. And a clique is maximal if the set can not be augmented without breaking the definition of a clique. And the joint probability of the MRF can be defined in terms of the graph's maximal cliques by:
+
+\begin{equation}
+    p(X) = \frac{1}{Z}\prod_{C} \psi(C)
+\end{equation}
+
+where $Z$ is a normalisation factor: $Z = \sum \prod_{C} \psi(C)$ and $\psi(C)$ is called a potential function.
+
+For instance the figure~\ref{fig:mrf}, we have two maximal clique namely $\{x_1,x_2,x_4\}$ and $\{x_1, x_4\}$ therefore:
+\begin{equation}
+    p(X) = \frac{1}{Z} \psi_1(x_1,x_2,x_4) \psi_2(x_1,x_4)
+\end{equation}
+
+\begin{figure}
+    \centering
+\begin{tikzpicture}[-,>=stealth',shorten >=1pt,auto,node distance=3cm,
+	  thick,main node/.style={circle,fill=white!20,draw,font=\sffamily\Large\bfseries}]
+
+    \node[main node] (1) {$x_1$};
+	\node[main node] (2) [right of=1] {$x_2$};
+	\node[main node] (3) [below of=1] {$x_3$};
+	\node[main node] (4) [below of=2] {$x_4$};
+
+	\path[every node/.style={font=\sffamily\small}]
+		(1) edge node {} (2)
+		(1) edge node {} (3)
+		(1) edge node {} (4)
+		(2) edge node {} (4);
+
+\end{tikzpicture}
+\caption{Example of a Markov network}
+\label{fig:mrf}
+\end{figure}
+
+A potential can be any non-negative function. Since it cannot be negative we usually defined $\psi(C) = exp(-E(C))$ where $E(C)$ is the energy function.
+
+Once we know how to compute $p(X)$ we can make inference about the variables using algorithms such as iterated conditional modes or max-product.
+
+One major drawback of the Markov Random Field is the need to compute the normalisation factor as the computation is exponential in the size of the model, making large model intractable.
+
+Markov Random Fields are particularly suited for spacial modelling and have been successfully used for image denoising, image segmentation\cite{650883} or reconstructing unobserved data\cite{2014Inv}.
+
+
+\section{Project Plan}
+Since we have now decided to investigate Markov networks to model the data center, I shall start by fully defining the network I intend to use especially in term of its geometry and potential functions. The first network will be based on the correlation analysis that is already done. At the beginning, the time dimension can be ignored but will need to be considered eventually. I will need to test different networks and different inference algorithms as I progress through the project.
+
+If by the end of March we are capable of faithfully modelling the data center with a Markov Random Field, we could start building a controller for the cooling system. If not we shall research more complicated networks which may include, for instance latent variables.
+
+All the research and implementation should be done by the end of May, leaving June to write the final report.
+
+\section{Evaluation Plan}
+The modelling phase of the project can be evaluated using standard evaluation techniques such as k-fold cross validation or leave-one-out cross validation since the available amount of data is quite small. These to test the inference of the network if some variable are observed but more importantly how precise the predictions are.
+
+If the controlling phase is attempted, we could compute what the PUE would be if the new controller is used and thus measure the gain in efficiency. In addition, we need to make sure that the controller never allows the temperature of the racks to go above the threshold given in the specification.
+
+\clearpage
+\bibliographystyle{plain}
+\bibliography{biblio}
+
+\end{document}

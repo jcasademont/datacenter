@@ -1,0 +1,55 @@
+\documentclass[12pt]{article}
+
+\usepackage{amsmath}
+
+
+\begin{document}
+
+\section*{Project Plan}
+
+\subsection*{Modelling}
+\begin{itemize}
+
+    \item Start modelling data using time independent model with continuous variables (eg GMRF).
+    \begin{itemize}
+
+        \item Network structure estimation (eg Graph Lasso)
+        \item Parameter estimation (Point-based estimate, fully bayesian)
+
+    \end{itemize}
+
+\item Learn hybrid model with undirected edges and directed edges to represent discrete time.
+    \begin{itemize}
+
+        \item Estimate network structure and parameters
+        \item Use time dependencies to predict data with one to several steps ahead.
+
+    \end{itemize}
+
+\item Mesure best model using model selection measure (eg: BIC) and absolute testing accuracy.
+
+
+\end{itemize}
+
+\subsection*{Simulation}
+\begin{itemize}
+
+    \item When a model is judged accurate enough using absolute testing accuracy, we move to simulation.
+
+    \item Sample data from the model to augment the dataset.
+
+    \item Use simulation to compute data for situations not occurring in the riginal dataset (eg a rack temperature going above $40^oC$).
+
+\end{itemize}
+
+\subsection*{Control}
+\begin{itemize}
+
+    \item Use the augmented dataset and the predictive model to learn strategies for controlling the Air conditionning units.
+
+    \item Develop strateges based on different utility functions (eg: Never exceed given temperatue thresholds, Save as much energy as possible)
+
+\end{itemize}
+
+
+\end{document}
