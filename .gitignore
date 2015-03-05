@@ -2,3 +2,13 @@
 env/
 .ropeproject/
 *.swp
+*.aux
+*.log
+*.out
+*.pdf
+*.dvi
+*.xlsx
+*.bbl
+*.blg
+*.swo
+__pycache__/
