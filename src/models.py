@@ -44,7 +44,7 @@ def bayesian(X):
 def empirical(S, labels, graph):
     Q = inv(S)
     for i in range(Q.shape[0]):
-        node = cols[i]
+        node = labels[i]
         nei = np.array([])
 
         for k in range(len(graph[node])):
@@ -58,12 +58,12 @@ def empirical(S, labels, graph):
     return Q
 
 
-def graphlasso(X, alpha, cv=False):
+def graphlasso(X, alpha, cv=False, assume_centered=False):
     if cv:
         gl = GraphLassoCV()
         alpha = gl.alpha_
     else:
-        gl = GraphLasso(alpha)
+        gl = GraphLasso(alpha, max_iter=10000, assume_centered=assume_centered)
         gl.fit(X)
 
     return gl.precision_, alpha

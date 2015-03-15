@@ -11,4 +11,7 @@ env/
 *.bbl
 *.blg
 *.swo
+*.bkp
+*.png
+*.esp
 __pycache__/

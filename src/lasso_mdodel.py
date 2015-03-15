@@ -6,28 +6,6 @@ import metrics as m
 import pandas as pd
 import matplotlib.pyplot as plt
 
-data_filename = "../data/all_data.pickle"
-
-
-def get_names(df, z):
-    return list(filter(lambda x: any(map(lambda y: y in x, z)),
-                       df.columns.values))
-
-
-def prep_data(keep=None, drop=None):
-    df = pd.read_pickle(data_filename)
-
-    if keep:
-        df = df[get_names(df, keep)]
-
-    if drop:
-        df = df.drop(get_names(df, drop), 1)
-
-    print(df.columns.values)
-
-    df = df.dropna()
-    return df
-
 
 def computeLasso():
     #K = ['e9', 'h12', 'e12', 'h9', 'k8',
