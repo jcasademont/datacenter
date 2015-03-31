@@ -1,10 +1,10 @@
 import utils
-import models
 import layouts
-import graphs
 import plot as pl
 import numpy as np
-import metrics as m
+import gmrf.models as mo
+import gmrf.graphs as gr
+import gmrf.metrics as m
 import matplotlib.pyplot as plt
 
 
@@ -14,7 +14,7 @@ def analyse(X, alphas, assume_centered=False):
     #mean = [0] * X.shape[1]
     print(mean)
     for a in alphas:
-        Q, alpha = models.graphlasso(X, a, assume_centered=assume_centered)
+        Q, alpha = mo.graphlasso(X, a, assume_centered=assume_centered)
         scores.append(m.bic(X, Q, mean))
 
     return scores
@@ -28,19 +28,19 @@ def main():
     df = utils.prep_dataframe(keep=K, normalise=False)
     df_lagged = utils.create_lagged_features(df)
     print(df_lagged.head(10))
-    scores = analyse(df_lagged.values, alphas)
+    scores = analyse(df_lagged.values, alphas, assume_centered=False)
 
     df = utils.prep_dataframe(keep=K, normalise=False)
     df_lagged = utils.create_lagged_features(df)
-    df_lagged = df_lagged.drop("l1_room_it_power_(kw)", axis=1)
+    #df_lagged = df_lagged.drop("l1_room_it_power_(kw)", axis=1)
     df_lagged['room_it_power_(kw)'] = df['room_it_power_(kw)']
     scores2 = analyse(df_lagged.values, alphas)
 
     df = utils.prep_dataframe(keep=K, normalise=False)
     df_lagged = utils.create_lagged_features(df)
-    df_lagged = df_lagged.drop("l1_room_it_power_(kw)", axis=1)
+    #df_lagged = df_lagged.drop("l1_room_it_power_(kw)", axis=1)
     cols = df_lagged.columns.values
-    df_lagged = df_lagged.drop(filter(lambda x: "ahu" not in x, cols), axis=1)
+    #df_lagged = df_lagged.drop(filter(lambda x: "ahu" not in x, cols), axis=1)
     df_lagged['room_it_power_(kw)'] = df['room_it_power_(kw)']
     df_lagged['ahu_1_outlet'] = df['ahu_1_outlet']
     df_lagged['ahu_2_outlet'] = df['ahu_2_outlet']
@@ -55,6 +55,15 @@ def main():
     ax1.set_title("BIC score - using deltas of all variable but IT power consumption")
     pl.struct_scores(alphas, scores3, ax2)
     ax2.set_title("BIC score - using only deltas of the racks variables")
+
+    fig2, ax4 = plt.subplots(1, 1)
+    Q, alpha = mo.graphlasso(df_lagged.values, alphas[np.argmax(scores3)])
+    G = gr.fromQ(Q, df_lagged.columns.values)
+    pl.graph(G, layouts.datacenter_layout, ax4)
+
+    fig3, ax5 = plt.subplots(1, 1)
+    pl.bin_precision_matrix(Q, df_lagged.columns.values)
+
 
     plt.show()
 

@@ -1,10 +1,10 @@
 import utils
-import models
 import layouts
-import graphs
 import plot as pl
 import numpy as np
-import metrics as m
+import gmrf.metrics as m
+import gmrf.graphs as gr
+import gmrf.models as mo
 import matplotlib.pyplot as plt
 
 
@@ -13,7 +13,7 @@ def analyse(X, alphas):
     mean = X.mean(axis=0)
     # mean = [0] * X.shape[1]
     for a in alphas:
-        Q, alpha = models.graphlasso(X, a)
+        Q, alpha = mo.graphlasso(X, a)
         scores.append(m.bic(X, Q, mean))
 
     return scores
@@ -46,8 +46,8 @@ def main():
     ax3.set_title("Without workload nor outlet")
 
     fig2, ax4 = plt.subplots(1, 1)
-    Q, alpha = models.graphlasso(df.values, alphas[np.argmax(scores_w)])
-    G = graphs.fromQ(Q, df.columns.values)
+    Q, alpha = mo.graphlasso(df.values, alphas[np.argmax(scores_w)])
+    G = gr.fromQ(Q, df.columns.values)
     pl.graph(G, layouts.datacenter_layout, ax4)
 
     fig3, ax5 = plt.subplots(1, 1)
