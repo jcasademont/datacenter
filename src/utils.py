@@ -68,7 +68,7 @@ def create_lagged_features(df, cols=None):
 
     df_lagged = pd.DataFrame(index=df.index)
     for c in cols:
-        df_lagged["l1_" + c] = df[c] - df[c].shift(1)
+        df_lagged[c] = df[c] - df[c].shift(1)
 
     df_lagged = df_lagged.dropna()
 
