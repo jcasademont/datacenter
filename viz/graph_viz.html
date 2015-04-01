@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html ng-app="d3DemoApp">
+  <head>
+    <meta charset="utf-8">
+    <title>Graph Viz</title>
+    <script src="http://d3js.org/d3.v2.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.1/angular.js"></script>
+    <script src="app.js"></script>
+    <style>
+
+        .node {
+          stroke: #fff;
+          stroke-width: 1.5px;
+        }
+
+        .link {
+          stroke: #999;
+          stroke-opacity: .6;
+        }
+
+    </style>
+  </head>
+  <body ng-controller="AppCtrl">
+    <!-- Here's where our visualization will go -->
+    <p class="error">{{error}}</p>
+    <gh-visualization val="data"></gh-visualization>
+  </body>
+</html>
