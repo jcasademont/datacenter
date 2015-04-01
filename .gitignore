@@ -2,6 +2,7 @@
 env/
 .ropeproject/
 *.swp
+*.un~
 *.aux
 *.log
 *.out

@@ -58,12 +58,15 @@ def empirical(S, labels, graph):
     return Q
 
 
-def graphlasso(X, alpha, cv=False, assume_centered=False):
+def graphlasso(X, alpha=0, cv=False, assume_centered=False):
     if cv:
         gl = GraphLassoCV()
-        alpha = gl.alpha_
     else:
         gl = GraphLasso(alpha, max_iter=10000, assume_centered=assume_centered)
-        gl.fit(X)
+
+    gl.fit(X)
+
+    if cv:
+        alpha = gl.alpha_
 
     return gl.precision_, alpha
