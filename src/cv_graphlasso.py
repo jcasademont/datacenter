@@ -16,6 +16,8 @@ def estimate_graph(df, title):
     print(title + ": alpha = {}".format(alpha))
     ax.set_title(title)
 
+    return G
+
 
 def main():
     """Use cross-validaton to estimate GMRF using different datasets
@@ -25,7 +27,8 @@ def main():
 
     # Absolute values for racks, workload, ahus outlet
     df = utils.prep_dataframe(keep=K)
-    estimate_graph(df, "Abs values")
+    G = estimate_graph(df, "Abs values")
+    gr.saveGraph(G)
 
     # Absolute values for racks, no workload, no ahus
     df_no_w_no_ahs = utils.prep_dataframe(keep=K, drop=['outlet', 'room'])
