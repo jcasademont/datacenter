@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 from sklearn import preprocessing
@@ -24,9 +25,9 @@ def _date_parser(x):
 
 
 def prep_dataframe(keep=None, drop=None, remove_mean=False, normalise=False):
-    room_level = "data/room_level.csv"
-    racks_temps = "data/rack_temps.csv"
-    ahus = "data/ahus.csv"
+    room_level = os.path.join(os.path.dirname(__file__), "../data/room_level.csv")
+    racks_temps = os.path.join(os.path.dirname(__file__), "../data/rack_temps.csv")
+    ahus = os.path.join(os.path.dirname(__file__), "../data/ahus.csv")
 
     df_room = pd.read_csv(room_level, sep=';', parse_dates=['date_time'], date_parser=_date_parser, decimal=',')
 

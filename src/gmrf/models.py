@@ -1,4 +1,4 @@
-import pymc as pm
+# import pymc as pm
 import numpy as np
 from numpy.linalg import inv
 from sklearn.covariance import GraphLassoCV, GraphLasso
