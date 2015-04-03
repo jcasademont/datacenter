@@ -1,5 +1,6 @@
 # import pymc as pm
 import numpy as np
+import metrics as m
 from numpy.linalg import inv
 from sklearn.covariance import GraphLassoCV, GraphLasso
 
@@ -58,15 +59,32 @@ def empirical(S, labels, graph):
     return Q
 
 
-def graphlasso(X, alpha=0, cv=False, assume_centered=False):
-    if cv:
+def graphlasso(X, method="cv", assume_centered=False):
+
+    if method is 'cv':
         gl = GraphLassoCV()
-    else:
-        gl = GraphLasso(alpha, max_iter=10000, assume_centered=assume_centered)
-
-    gl.fit(X)
-
-    if cv:
+        gl.fit(X)
         alpha = gl.alpha_
+        Q = gl.precision_
 
-    return gl.precision_, alpha
+    elif method is 'bic':
+        max_score = -np.inf
+        alphas = np.arange(0.0, 5.0, 0.1)
+        mean = np.mean(X, axis=0)
+
+        for a in alphas:
+            gl = GraphLasso(a, max_iter=10000,
+                            assume_centered=assume_centered)
+            gl.fit(X)
+            score = m.bic(X, gl.precision_, mean)
+
+            if score > max_score:
+                max_score = score
+                alpha = a
+                Q = gl.precision_
+
+    else:
+        raise NotImplementedError(method +
+                " is not a valid method, use 'cv' or 'bic'")
+
+    return Q, alpha
