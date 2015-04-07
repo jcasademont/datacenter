@@ -1,5 +1,5 @@
 import numpy as np
-import metrics as m
+import gmrf.metrics as m
 from numpy.linalg import inv
 from sklearn.covariance import GraphLassoCV, GraphLasso
 
@@ -21,7 +21,6 @@ def empirical(S, labels, graph):
 
 
 def graphlasso(X, method="cv", assume_centered=False):
-
     if method is 'cv':
         gl = GraphLassoCV()
         gl.fit(X)
