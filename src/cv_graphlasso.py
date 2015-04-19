@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 def estimate_graph(df, title):
     """Estimate and plot GMRF graph"""
-    Q, alpha = mo.graphlasso(df.values, cv=True)
+    Q, alpha = mo.graphlasso(df.values, method="cv")
     G = gr.fromQ(Q, df.columns.values)
 
     fig, ax = plt.subplots(1, 1)

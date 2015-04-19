@@ -74,3 +74,14 @@ def create_lagged_features(df, cols=None):
     df_lagged = df_lagged.dropna()
 
     return df_lagged
+
+def create_shifted_features(df, shift=1, cols=None):
+    if not cols:
+        cols = df.columns
+
+    df_shifted = pd.DataFrame(index=df.index)
+    for c in cols:
+        df_shifted["l" + str(shift) + "_" + c] = df[c].shift(shift)
+
+
+    return df_shifted
