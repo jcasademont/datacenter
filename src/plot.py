@@ -1,6 +1,7 @@
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
 
 
 def struct_scores(x, y, ax=None):
@@ -25,6 +26,9 @@ def precision_matrix(Q, labels, fig=None, ax=None, text=False):
     if ax is None:
         ax = plt.gca()
 
+    Q = np.absolute(Q)
+    m = np.max(Q)
+
     cax = ax.pcolor(Q, cmap='Blues')
 
     if text:
@@ -47,14 +51,17 @@ def bin_precision_matrix(Q, labels, ax=None):
     if ax is None:
         ax = plt.gca()
 
-    Q[Q != 0] = 1
+    R = np.array(Q, copy=True)
+    # R[R >= 0.1] = 1
+    # R[R <= -0.1] = 1
+    R[R != 0] = 1
     np.fill_diagonal(Q, 0)
-    print(Q.sum())
+    print(R.sum())
 
-    cax = ax.pcolor(Q, cmap='Greys')
+    cax = ax.pcolor(R, cmap='Greys')
 
-    ax.set_xticks(np.arange(Q.shape[0])+0.5, minor=False)
-    ax.set_yticks(np.arange(Q.shape[1])+0.5, minor=False)
+    ax.set_xticks(np.arange(R.shape[0])+0.5, minor=False)
+    ax.set_yticks(np.arange(R.shape[1])+0.5, minor=False)
     ax.set_xticklabels(labels, rotation=-90, minor=False)
     ax.set_yticklabels(labels, minor=False)
     ax.axis('tight')
