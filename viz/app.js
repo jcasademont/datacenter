@@ -6,6 +6,7 @@ var graphApp = angular.module('d3DemoApp', []);
 // controller business logic
 graphApp.controller('AppCtrl', function AppCtrl ($scope, $http) {
 
+    $scope.error = "No error";
     $scope.data = {"nodes": [], "links": []};
     var rescale = function (data) {
 
@@ -37,6 +38,7 @@ graphApp.controller('AppCtrl', function AppCtrl ($scope, $http) {
             function(data) {
                 console.log("Success");
                 $scope.data = rescale(data);
+                $scope.error = ""
             }
         )
         .error(
@@ -44,6 +46,65 @@ graphApp.controller('AppCtrl', function AppCtrl ($scope, $http) {
                 $scope.error = 'Error: ' + status;
             }
         );
+
+    // Hiding function
+    $scope.hide = {
+        racks : false,
+        ahus : false,
+        power : false,
+
+    };
+
+    var hide = function(group, data) {
+
+        nodes = []
+        links = []
+
+        ids = []
+
+        for (var i=0; i < data.nodes.length; i++) {
+
+            if(data.nodes[i].group != group) {
+                nodes.push(data.nodes[i]);
+                ids.push(data.nodes[i].id);
+            }
+
+        }
+
+        for (var i=0; i < data.links.length; i++) {
+
+            if(ids.indexOf(data.links[i].source) > -1
+               && ids.indexOf(data.links[i].target) > -1) {
+
+                links.push(data.links[i]);
+
+            }
+
+        }
+
+        console.log("Hide group " + group);
+
+        return {nodes, links};
+    };
+
+    $scope.hideRacks = function() {
+        if($scope.hide.racks) {
+            $scope.data = hide(1, $scope.data)
+        }
+    };
+
+    $scope.hideAhus = function() {
+        if($scope.hide.ahus) {
+            $scope.data = hide(2, $scope.data)
+        }
+    };
+
+    $scope.hidePower = function() {
+        if($scope.hide.power) {
+            $scope.data = hide(3, $scope.data)
+        }
+    };
+
 });
 
 graphApp.directive('ghVisualization', function () {
@@ -76,9 +137,12 @@ graphApp.directive('ghVisualization', function () {
 
           scope.$watch('val', function (newG, oldG) {
 
+
             if(!newG) {
                 return;
             }
+            console.log("Redraw data");
+
 
             force.nodes(newG.nodes)
                  .links(newG.links)
