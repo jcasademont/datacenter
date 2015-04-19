@@ -36,6 +36,13 @@ def main():
     fig2, ax2 = plt.subplots(1, 1)
     pl.bin_precision_matrix(Q_rack, df_lagged.columns.values)
 
+    fig3, ax3 = plt.subplots(1, 1)
+    G = gr.fromQ(Q_all, df_lagged.columns.values)
+    pl.graph(G, layouts.datacenter_layout, ax3)
+
+    fig4, ax4 = plt.subplots(1, 1)
+    pl.bin_precision_matrix(Q_all, df_lagged.columns.values)
+
     plt.show()
 
 if __name__ == "__main__":
