@@ -38,7 +38,7 @@ def graphlasso(X, method="cv", assume_centered=False, log=False, alpha=None):
 
     elif method is 'bic':
         min_score = np.inf
-        alphas = np.arange(0.0, 1.0, 0.1)
+        alphas = np.arange(0.0, 0.5, 0.1)
 
         for a in alphas:
             print(" * Alpha = {}".format(a))
