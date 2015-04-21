@@ -32,8 +32,8 @@ def main():
     # Q = np.load("non_gaussian_prec.npy")
     # Qg = np.load("gaussian_prec.npy")
 
-    indices = np.array([0, 1])
-    # indices = np.array(np.arange(37), [42])
+    # indices = np.array([0, 1])
+    indices = np.append(np.arange(37), [42])
 
     Q, a, s = mo.graphlasso(df.values, method="bic", log=True)
     Qg, ag, sg = mo.graphlasso(Z, method="bic", log=True)
