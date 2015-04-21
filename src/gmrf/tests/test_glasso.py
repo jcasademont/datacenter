@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-import models as mo
+from ..gmrf import GMRF
 from numpy.linalg import inv
 
 class TestGlasso(unittest.TestCase):
@@ -25,7 +25,9 @@ class TestGlasso(unittest.TestCase):
 
     def test_simple_chain_cv(self):
         """ Test glasso with simple model A - B - C using CV """
-        Q_pred, _ = mo.graphlasso(self.chain_data, method='cv')
+        gmrf = GMRF(method="cv")
+        gmrf.fit(self.chain_data)
+        Q_pred = gmrf.precision_
         for idx, x in np.ndenumerate(self.Q_chain):
             self.assertLess(abs(Q_pred[idx] - x), 0.2)
 
@@ -34,16 +36,18 @@ class TestGlasso(unittest.TestCase):
                                           |   |
                                           C - D
                                                         """
-        Q_pred, _ = mo.graphlasso(self.loop_data, method='cv')
-        print(Q_pred)
+        gmrf = GMRF(method="cv")
+        gmrf.fit(self.loop_data)
+        Q_pred = gmrf.precision_
         for idx, x in np.ndenumerate(self.Q_loop):
             self.assertLess(abs(Q_pred[idx] - x), 0.2)
 
     def test_simple_chain_bic(self):
         """ Test glasso with simple model A - B - C using BIC """
-        Q_pred, _ = mo.graphlasso(self.chain_data, method='bic')
+        gmrf = GMRF(method="bic")
+        gmrf.fit(self.chain_data)
+        Q_pred = gmrf.precision_
         for idx, x in np.ndenumerate(self.Q_chain):
-            print(abs( x - Q_pred[idx]))
             if x == 0:
                 self.assertEqual(Q_pred[idx], x)
             else:

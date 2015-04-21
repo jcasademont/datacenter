@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-import metrics as m
+from ..gmrf import GMRF
 from numpy.linalg import inv
 from scipy.stats import norm, multivariate_normal
 
@@ -11,7 +11,9 @@ class TestLogPdf(unittest.TestCase):
         x = np.array([1])
         mean = np.array([2])
         Q  = np.array([[ 1 / 25 ]])
-        self.assertAlmostEqual(m.logpdf(x, mean, Q),
+
+        gmrf = GMRF()
+        self.assertAlmostEqual(gmrf._logpdf(x, mean, Q),
                                norm.logpdf(1, 2, 5))
 
     def test_mulit_dim(self):
@@ -22,7 +24,8 @@ class TestLogPdf(unittest.TestCase):
                        [0.7, 0.68, 0.01],
                        [-0.4, 0.01, 1]])
 
-        self.assertAlmostEqual(m.logpdf(x, mean, Q),
+        gmrf = GMRF()
+        self.assertAlmostEqual(gmrf._logpdf(x, mean, Q),
                                multivariate_normal.logpdf(x, mean, inv(Q)))
 
 class TestBic(unittest.TestCase):
@@ -39,6 +42,9 @@ class TestBic(unittest.TestCase):
 
         mean = np.mean(X, axis=0)
 
-        self.assertAlmostEqual(m.bic(X, Q),
-                               np.sum(multivariate_normal.logpdf(X, mean, inv(Q))) - 2.5 * np.log(5))
+        gmrf = GMRF()
+        gmrf.precision_ = Q
+        bic, converged = gmrf.bic(X, gamma=0)
 
+        self.assertTrue(converged)
+        self.assertAlmostEqual(bic, -2 * np.sum(multivariate_normal.logpdf(X, mean, inv(Q))) + 5 * np.log(5))
