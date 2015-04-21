@@ -93,8 +93,7 @@ class GMRF():
 
         ratio_failure = failures / X.shape[0]
         if ratio_failure != 0.0:
-            warnings.warm("Ratio of failure = {}"
-                            .format(ratio_failure))
+            warnings.warn("Ratio of failure = {}".format(ratio_failure))
 
         if ll > 0:
             raise ValueError("Log likelihood ( = {} ) \
@@ -117,8 +116,31 @@ class GMRF():
         return -2 * ll + nb_params * np.log(X.shape[0]) \
             + 4 * nb_params * gamma * np.log(X.shape[1]), converged
 
-    def predict(self, X):
-        pass
+    def predict(self, X, indices):
+        self.check()
+
+        Q = self.precision_
+
+        _indices = list(filter(lambda x: x not in indices,
+                                np.arange(Q.shape[0])))
+
+        new_indices = np.append(indices, _indices)
+
+        _Q = (Q[new_indices, :])[:, new_indices]
+
+        lim_a = np.size(indices)
+        Qaa = _Q[:lim_a, :lim_a]
+        Qab = _Q[:lim_a, lim_a:]
+
+        iQaa = inv(Qaa)
+
+        mean_a = np.mean(X[:, indices], axis=0)
+        mean_b = np.mean(X[:, _indices], axis=0)
+
+        pred = mean_a - (np.dot(iQaa,
+                np.dot(Qab, (X[:, _indices] - mean_b).T))).reshape(mean_a.shape)
+
+        return pred
 
     def score(self, X, indices):
         self.check()
