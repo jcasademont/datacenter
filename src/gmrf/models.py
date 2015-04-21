@@ -20,21 +20,29 @@ def empirical(S, labels, graph):
     return Q
 
 
-def graphlasso(X, method="cv", assume_centered=False, log=False):
+def graphlasso(X, method="cv", assume_centered=False, log=False, alpha=None):
     scores = []
 
-    if method is 'cv':
+    if alpha:
+        gl = GraphLasso(alpha, max_iter=100000,
+                        assume_centered=assume_centered)
+        gl.fit(X)
+        Q = gl.precision_
+        _alpha = alpha
+
+    elif method is 'cv':
         gl = GraphLassoCV()
         gl.fit(X)
-        alpha = gl.alpha_
+        _alpha = gl.alpha_
         Q = gl.precision_
 
     elif method is 'bic':
         min_score = np.inf
-        alphas = np.arange(0.0, 3.0, 0.1)
+        alphas = np.arange(0.0, 1.0, 0.1)
 
         for a in alphas:
-            gl = GraphLasso(a, max_iter=10000,
+            print(" * Alpha = {}".format(a))
+            gl = GraphLasso(a, max_iter=100000,
                             assume_centered=assume_centered)
             gl.fit(X)
             score, converged = m.bic(X, gl.precision_, 0.5)
@@ -44,7 +52,7 @@ def graphlasso(X, method="cv", assume_centered=False, log=False):
 
                 if score <= min_score:
                     min_score = score
-                    alpha = a
+                    _alpha = a
                     Q = gl.precision_
 
     else:
@@ -52,6 +60,6 @@ def graphlasso(X, method="cv", assume_centered=False, log=False):
                 " is not a valid method, use 'cv' or 'bic'")
 
     if log:
-        return Q, alpha, scores
+        return Q, _alpha, scores
     else:
-        return Q, alpha
+        return Q, _alpha
