@@ -11,6 +11,7 @@ import pandas as pd
 import stat_tests as st
 import transformations as tr
 from scipy.stats import norm
+import evaluation as ev
 
 def log_likelihood(X):
     r = []
@@ -24,7 +25,7 @@ def log_likelihood(X):
 def main():
     K = list(layouts.datacenter_layout.keys())
 
-    df = utils.prep_dataframe(keep=K)
+    df = utils.prep_dataframe(keep=K, remove_mean=True)
     df_shifted = utils.create_shifted_features(df)
 
     df = df.join(df_shifted, how="outer")
@@ -91,6 +92,13 @@ def main():
     df_Qg = pd.DataFrame(Qg, index=df.columns.values, columns=df.columns.values)
     df_Q.to_html(open('Q_non_gauss.html', 'w'))
     df_Qg.to_html(open('Q_gauss.html', 'w'))
+
+    np.save("non_gaussian_prec", Q)
+    np.save("gaussian_prec", Qg)
+
+    indices = np.append(np.arange(38), [42])
+    print("Non gaussian MAE = {}".format(ev.score(df.values, indices, Q)))
+    print("Gaussian MAE = {}".format(ev.score(Z, indices, Qg)))
 
     plt.show()
 
