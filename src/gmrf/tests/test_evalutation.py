@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-import evaluation as ev
+from ..gmrf import GMRF
 from numpy.testing import assert_allclose
 
 class TestEvaluation(unittest.TestCase):
@@ -11,7 +11,9 @@ class TestEvaluation(unittest.TestCase):
         indices = np.array([1])
         Q = np.array([[1, 2], [2, 3]])
 
-        score = ev.score(X, indices, Q)
+        gmrf = GMRF()
+        gmrf.precision_ = Q
+        score = gmrf.score(X, indices)
         self.assertEqual(score, 0.5 * (abs(7 - 13/3) + abs(1 - 11/3)))
 
     def test_score2(self):
@@ -20,5 +22,7 @@ class TestEvaluation(unittest.TestCase):
         indices = np.array([1])
         Q = np.array([[1, 2, 3], [2, 4, 5], [3, 5, 7]])
 
-        score = ev.score(X, indices, Q)
+        gmrf = GMRF()
+        gmrf.precision_ = Q
+        score = gmrf.score(X, indices)
         self.assertEqual(score, 5.875)
