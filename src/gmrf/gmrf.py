@@ -32,7 +32,7 @@ class GMRF():
         elif self.method_ is 'bic':
             min_score = np.inf
             min_precision = None
-            alphas = np.arange(0.0, 0.5, 0.1)
+            alphas = np.arange(0.0, 5.0, 0.1)
 
             for a in alphas:
                 if self.verbose:
@@ -163,11 +163,13 @@ class GMRF():
         mean_a = np.mean(X[:, indices], axis=0)
         mean_b = np.mean(X[:, _indices], axis=0)
 
-        errors = np.zeros(lim_a)
+        # errors = np.zeros(lim_a)
+        errors = np.zeros((X.shape[0], lim_a))
         for i in range(X.shape[0]):
             pred = mean_a - np.dot(iQaa,
                             np.dot(Qab, X[i, _indices] - mean_b))
-            errors = errors + np.absolute(pred - X[i, indices])
+            # errors = errors + np.absolute(pred - X[i, indices])
+            errors[i, :] = np.absolute(pred - X[i, indices])
 
         errors = errors / X.shape[0]
 
