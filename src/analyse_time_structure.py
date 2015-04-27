@@ -2,8 +2,10 @@ import utils
 import layouts
 import plot as pl
 import numpy as np
-import gmrf.models as mo
+import transformations as tr
 import matplotlib.pyplot as plt
+
+from gmrf.gmrf import GMRF
 
 def main():
     K = list(layouts.datacenter_layout.keys())
@@ -15,14 +17,29 @@ def main():
 
     df = df.dropna()
 
-    Q, alpha, scores = mo.graphlasso(df.values, method='bic', log=True)
+    print("Tranform data")
+    Z = tr.to_normal(df.values)
 
-    print(scores)
+    gmrf = GMRF(method="bic")
+    gmrf_gaussian = GMRF(method="bic")
+
+    gmrf.fit(df.values)
+    gmrf_gaussian.fit(Z)
+
+    print(gmrf.alpha_)
+    print(gmrf_gaussian.alpha_)
+
+    np.save("non_gauss_bic_score", gmrf.bic_scores)
+    np.save("gauss_bic_score", gmrf_gaussian.bic_scores)
+    np.save("non_gauss_precision", gmrf.precision_)
+    np.save("gauss_precision", gmrf_gaussian.precision_)
+
+    plt.figure()
+    plt.plot(np.arange(0.1, 5.0, 0.1), gmrf.bic_scores)
+    plt.plot(np.arange(0.1, 5.0, 0.1), gmrf_gaussian.bic_scores)
+
     fig, ax = plt.subplots(1, 1)
-    pl.bin_precision_matrix(Q, df.columns.values, ax)
-
-    fig, ax2 = plt.subplots(1, 1)
-    ax2.plot(scores)
+    pl.bin_precision_matrix(gmrf.precision_, df.columns.values, ax)
 
     plt.show()
 
