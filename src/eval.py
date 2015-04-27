@@ -11,11 +11,12 @@ from sklearn.cross_validation import KFold
 import multiprocessing as mp
 
 def scoring(X, alpha, indices, train, test):
-    gmrf = GMRF(method="bic", alpha=alpha)
+    gmrf = GMRF(method="cv", alpha=alpha)
+    # gmrf = GMRF(method="bic", alpha=alpha)
     gmrf.fit(X[train])
     scores = gmrf.score(X[test], indices)
 
-    return scores
+    return scores[:568]
 
 def main():
     K = list(layouts.datacenter_layout.keys())
@@ -33,31 +34,36 @@ def main():
     # Indices of racks and IT power consumption
     indices = np.append(np.arange(38), [42])
 
-    gmrf = GMRF(method="bic")
-    gmrf_gaussian = GMRF(method="bic")
+    a = 0
+    ag = 0
+    # gmrf = GMRF(method="bic")
+    # gmrf_gaussian = GMRF(method="bic")
 
-    gmrf.fit(df.values)
-    gmrf_gaussian.fit(Z)
+    # gmrf.fit(df.values)
+    # gmrf_gaussian.fit(Z)
 
-    a = gmrf.alpha_
-    ag = gmrf_gaussian.alpha_
+    # np.save("non_gauss_Q", gmrf.precision_)
+    # np.save("gauss_Q", gmrf_gaussian.precision_)
 
-    plt.figure()
-    plt.plot(gmrf.bic_scores)
-    plt.plot(gmrf_gaussian.bic_scores)
+    # a = gmrf.alpha_
+    # ag = gmrf_gaussian.alpha_
+
+    # plt.figure()
+    # plt.plot(gmrf.bic_scores)
+    # plt.plot(gmrf_gaussian.bic_scores)
 
     kf = KFold(df.shape[0], n_folds=5, shuffle=False)
 
     pool = mp.Pool(processes=8)
 
-    print(" Non Gaussian model")
+    print("Non Gaussian model")
     kf_non_gauss_scores = [pool.apply_async(scoring,
                             args=(df.values, a, indices, train, test))
                             for train, test in kf]
 
     kf_non_gauss_scores = [p.get() for p in kf_non_gauss_scores]
 
-    print(" Gaussian model")
+    print("Gaussian model")
     kf_gauss_scores = [pool.apply_async(scoring,
                             args=(Z, ag, indices, train, test))
                             for train, test in kf]
@@ -70,8 +76,19 @@ def main():
     print("CV, non gaussian score = {}".format(kf_non_gauss_score))
     print("CV, gaussian score = {}".format(kf_gauss_score))
 
-    np.save("non_gauss_cv_mae_score", kf_non_gauss_score)
-    np.save("gauss_cv_mae_score", kf_gauss_score)
+    np.save("full_non_gauss_cv_mae_score", kf_non_gauss_score)
+    np.save("full_gauss_cv_mae_score", kf_gauss_score)
+
+    labels = df.columns.values
+    labels = list(filter(lambda x: 'ahu' not in x, labels))
+
+    plt.figure()
+    plt.boxplot(kf_non_gauss_score)
+    plt.xticks(np.arange(1, 40), labels, rotation=90)
+
+    plt.figure()
+    plt.boxplot(kf_gauss_score)
+    plt.xticks(np.arange(1, 40), labels, rotation=90)
 
     plt.show()
 

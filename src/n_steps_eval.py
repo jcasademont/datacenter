@@ -11,6 +11,7 @@ from sklearn.cross_validation import KFold
 import multiprocessing as mp
 
 def scoring(X, alpha, indices, l1_indices, train, test):
+    # gmrf = GMRF(method="cv")
     gmrf = GMRF(method="bic", alpha=alpha)
     gmrf.fit(X[train])
 
@@ -46,8 +47,10 @@ def main():
     Z = tr.to_normal(df.values)
 
     # Indices of racks and IT power consumption
-    indices = np.append(np.arange(38), [42])
-    l1_indices = np.append(np.arange(43, 81), [85])
+    # indices = np.append(np.arange(38), [42])
+    # l1_indices = np.append(np.arange(43, 81), [85])
+    indices = np.arange(43)
+    l1_indices = np.arange(43, 86)
 
     # gmrf = GMRF(method="bic")
     # gmrf_gaussian = GMRF(method="bic")
@@ -86,6 +89,12 @@ def main():
 
     np.save("n_step_non_gauss_cv_mae_score", kf_non_gauss_score)
     np.save("n_step_gauss_cv_mae_score", kf_gauss_score)
+
+    plt.figure()
+    plt.plot(kf_non_gauss_score)
+
+    plt.figure()
+    plt.plot(kf_gauss_score)
 
     plt.show()
 
