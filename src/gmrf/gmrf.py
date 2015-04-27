@@ -171,7 +171,7 @@ class GMRF():
             # errors = errors + np.absolute(pred - X[i, indices])
             errors[i, :] = np.absolute(pred - X[i, indices])
 
-        errors = errors / X.shape[0]
+        # errors = errors / X.shape[0]
 
         return errors
 
