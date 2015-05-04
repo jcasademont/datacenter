@@ -10,9 +10,7 @@ from sklearn.cross_validation import KFold
 
 import multiprocessing as mp
 
-def scoring(X, alpha, indices, l1_indices, train, test):
-    # gmrf = GMRF(method="cv")
-    gmrf = GMRF(method="bic", alpha=alpha)
+def scoring(X, gmrf, indices, l1_indices, train, test):
     gmrf.fit(X[train])
 
     X_test = X[test]
@@ -23,10 +21,11 @@ def scoring(X, alpha, indices, l1_indices, train, test):
         pred = X_test[i, l1_indices]
 
         for j in range(i, X_test.shape[0]):
-            X_test[j, l1_indices] = pred
-            x = X_test[j, :].reshape(1, X_test.shape[1])
-            pred = gmrf.predict(x, indices)
-            scores[j, :] += np.absolute(pred - X[j, indices])
+            x = X_test[j, :].reshape(1, X_test.shape[1]).copy()
+            x[0 , l1_indices] = pred
+
+            pred = gmrf.predict(x, indices).ravel()
+            scores[j - i, :] += np.absolute(pred - X_test[j, indices])
 
     for i in range(X_test.shape[0]):
         scores[i, :] = scores[i, :] / (X_test.shape[0] - i)
@@ -63,20 +62,22 @@ def main():
     a = 0.1
     ag = 0.1
 
+    gmrf = GMRF(alpha=a)
+
     kf = KFold(df.shape[0], n_folds=5, shuffle=False)
 
     pool = mp.Pool(processes=8)
 
     print(" Non Gaussian model")
     kf_non_gauss_scores = [pool.apply_async(scoring,
-                            args=(df.values, a, indices, l1_indices, train, test))
+                            args=(df.values, gmrf, indices, l1_indices, train, test))
                             for train, test in kf]
 
     kf_non_gauss_scores = [p.get() for p in kf_non_gauss_scores]
 
     print(" Gaussian model")
     kf_gauss_scores = [pool.apply_async(scoring,
-                            args=(Z, ag, indices, l1_indices, train, test))
+                            args=(Z, gmrf, indices, l1_indices, train, test))
                             for train, test in kf]
 
     kf_gauss_scores = [p.get() for p in kf_gauss_scores]
