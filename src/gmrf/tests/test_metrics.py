@@ -44,6 +44,7 @@ class TestBic(unittest.TestCase):
 
         gmrf = GMRF()
         gmrf.precision_ = Q
+        gmrf.mean_ = np.mean(X, axis=0)
         bic, converged = gmrf.bic(X, gamma=0)
 
         self.assertTrue(converged)

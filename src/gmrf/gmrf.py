@@ -10,13 +10,18 @@ class GMRF():
         self.method_ = method
         self.bic_scores = []
         self.precision_ = None
+        self.mean_ = None
         self.verbose = verbose
 
     def check(self):
         if self.precision_ is None:
             raise ValueError("The precision matrix is not set")
+        elif self.mean_ is None:
+            raise ValueError("The mean vector is not set")
 
     def fit(self, X):
+        self.mean_ = np.mean(X, axis=0)
+
         if self.alpha_:
             gl = GraphLasso(self.alpha_, max_iter=100000)
 
@@ -120,6 +125,7 @@ class GMRF():
         self.check()
 
         Q = self.precision_
+        mu = self.mean_
 
         _indices = list(filter(lambda x: x not in indices,
                                 np.arange(Q.shape[0])))
@@ -134,13 +140,17 @@ class GMRF():
 
         iQaa = inv(Qaa)
 
-        mean_a = np.mean(X[:, indices], axis=0)
-        mean_b = np.mean(X[:, _indices], axis=0)
+        mean_a = mu[indices]
+        mean_b = mu[_indices]
 
-        pred = mean_a - (np.dot(iQaa,
-                np.dot(Qab, (X[:, _indices] - mean_b).T))).reshape(mean_a.shape)
+        preds = np.zeros((X.shape[0], np.size(indices)))
 
-        return pred
+        for i in range(preds.shape[0]):
+            pred = mean_a - (np.dot(iQaa,
+                    np.dot(Qab, (X[i, _indices] - mean_b).T))).reshape(mean_a.shape)
+            preds[i, :] = pred
+
+        return preds
 
     def score(self, X, indices):
         self.check()
