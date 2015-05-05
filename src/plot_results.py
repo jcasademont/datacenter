@@ -16,9 +16,9 @@ def main(layout, file_mad, file_r2):
 
     for i in range(mad.shape[1]):
         fig, (ax, ax2) = plt.subplots(2, 1)
-        ax.plot(mad[:, i])
+        ax.plot(mad[:, i], 'o')
         ax.set_title("MAD: {}".format(df.columns.values[i]))
-        ax2.plot(r2[:, i])
+        ax2.plot(r2[:, i], 'o')
         ax2.set_title("R2: {}".format(df.columns.values[i]))
 
     plt.show()

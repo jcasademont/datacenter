@@ -81,8 +81,10 @@ def main(alpha, transform, temporal, layout, steps, output):
         print("* Tranform data")
         X = tr.to_normal(X)
 
-    indices = np.append(np.arange(38), [42])
-    l1_indices = np.append(np.arange(38), [42])
+    # indices = np.append(np.arange(38), [42])
+    # l1_indices = np.append(np.arange(43, 81), [85])
+    indices = np.arange(38)
+    l1_indices = np.arange(42, 80)
 
     gmrf = GMRF(alpha=alpha)
 
