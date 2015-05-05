@@ -22,4 +22,4 @@ datacenter_layout.update(
 
 full_layout = datacenter_layout.copy()
 full_layout.update(
-    {'room_it_power_(kw)': (30, 30)})
+        {'room_it_power_(kw)': (30, 30), 'ahu_1_air_on': (40, 40)})
