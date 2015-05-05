@@ -1,6 +1,6 @@
 import warnings
 import numpy as np
-from numpy.linalg import inv, cholesky
+from numpy.linalg import inv, cholesky, solve
 from sklearn.covariance import GraphLassoCV, GraphLasso
 
 class GMRF():
@@ -150,40 +150,23 @@ class GMRF():
                     np.dot(Qab, (X[i, _indices] - mean_b).T))).reshape(mean_a.shape)
             preds[i, :] = pred
 
-        return preds
+        return preds, np.diag(iQaa)
 
-    def score(self, X, indices):
+    def sample(self, size=1):
         self.check()
 
         Q = self.precision_
+        mu = self.mean_
 
-        _indices = list(filter(lambda x: x not in indices,
-                                np.arange(Q.shape[0])))
+        n = Q.shape[0]
 
-        new_indices = np.append(indices, _indices)
+        L = cholesky(Q).T
 
-        _Q = (Q[new_indices, :])[:, new_indices]
+        samples = np.empty((size, n))
 
-        lim_a = np.size(indices)
-        Qaa = _Q[:lim_a, :lim_a]
-        Qab = _Q[:lim_a, lim_a:]
+        for i in range(size):
+            z = np.random.multivariate_normal([0] * n, np.eye(n))
+            v = solve(L, z)
+            samples[i, :] = v + mu
 
-        iQaa = inv(Qaa)
-
-        mean_a = np.mean(X[:, indices], axis=0)
-        mean_b = np.mean(X[:, _indices], axis=0)
-
-        # errors = np.zeros(lim_a)
-        errors = np.zeros((X.shape[0], lim_a))
-        for i in range(X.shape[0]):
-            pred = mean_a - np.dot(iQaa,
-                            np.dot(Qab, X[i, _indices] - mean_b))
-            # errors = errors + np.absolute(pred - X[i, indices])
-            errors[i, :] = np.absolute(pred - X[i, indices])
-
-        # errors = errors / X.shape[0]
-
-        return errors
-
-    def sample(self):
-        pass
+        return samples
