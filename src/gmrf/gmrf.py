@@ -48,7 +48,7 @@ class GMRF():
 
                 gl.fit(X)
                 self.precision_ = gl.precision_
-                score, converged = self.bic(X, gamma=0.5)
+                score, converged = self.bic(X, gamma=0.0)
 
                 if converged:
                     self.bic_scores.append(score)
@@ -153,7 +153,7 @@ class GMRF():
 
         return preds
 
-    def conf_interval(self, indices, p_interval):
+    def variances(self, indices):
         self.check()
 
         Q = self.precision_
@@ -172,10 +172,7 @@ class GMRF():
 
         iQaa = inv(Qaa)
 
-        n = np.sqrt(2) * erfinv(p_interval)
-        variances = np.diag(iQaa)
-
-        return n * np.sqrt(variances)
+        return np.diag(iQaa)
 
     def sample(self, size=1):
         self.check()
