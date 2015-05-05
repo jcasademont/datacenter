@@ -61,7 +61,7 @@ def scoring(X, gmrf, indices, l1_indices, train, test, nb_steps=None, id=-1):
     if id >= 0:
         print("** Worker {} done.".format(id))
 
-    return r2[:568, :], scores[:568, :]
+    return r2[:568, :], scores[:568, :], gmrf.conf_interval(indices, 0.95)
 
 def main(alpha, transform, temporal, layout, steps, output):
     variables = getattr(layouts, layout)
@@ -103,19 +103,19 @@ def main(alpha, transform, temporal, layout, steps, output):
 
     r2 = results[0]
     kf_scores = results[1]
+    conf_ints = results[2]
 
     r2 = np.sum(r2, axis=0) / len(kf)
     scores = np.sum(kf_scores, axis=0) / len(kf)
+    conf_int = np.sum(conf_ints, axis=0) / len(kf)
 
     if output:
         results_name = os.path.join(os.path.dirname(__file__),
                                     "../results/")
-        np.save(results_name + output + str(steps) + "_kf_scores",
-                kf_scores)
-        np.save(results_name + output + str(steps) + "_scores",
-                scores)
-        np.save(results_name + output + str(steps) + "_r2",
-                r2)
+        np.save(results_name + output + str(steps) + "_kf_scores", kf_scores)
+        np.save(results_name + output + str(steps) + "_scores", scores)
+        np.save(results_name + output + str(steps) + "_r2", r2)
+        np.save(results_name + output + str(steps) + "_conf_int", conf_int)
 
     labels = df.columns.values
     labels = list(filter(lambda x: 'ahu' not in x, labels))

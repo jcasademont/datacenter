@@ -1,5 +1,6 @@
 import warnings
 import numpy as np
+from scipy.special import erfinv
 from numpy.linalg import inv, cholesky, solve
 from sklearn.covariance import GraphLassoCV, GraphLasso
 
@@ -150,7 +151,31 @@ class GMRF():
                     np.dot(Qab, (X[i, _indices] - mean_b).T))).reshape(mean_a.shape)
             preds[i, :] = pred
 
-        return preds, np.diag(iQaa)
+        return preds
+
+    def conf_interval(self, indices, p_interval):
+        self.check()
+
+        Q = self.precision_
+        mu = self.mean_
+
+        _indices = list(filter(lambda x: x not in indices,
+                                np.arange(Q.shape[0])))
+
+        new_indices = np.append(indices, _indices)
+
+        _Q = (Q[new_indices, :])[:, new_indices]
+
+        lim_a = np.size(indices)
+        Qaa = _Q[:lim_a, :lim_a]
+        Qab = _Q[:lim_a, lim_a:]
+
+        iQaa = inv(Qaa)
+
+        n = np.sqrt(2) * erfinv(p_interval)
+        variances = np.diag(iQaa)
+
+        return n * np.sqrt(variances)
 
     def sample(self, size=1):
         self.check()
