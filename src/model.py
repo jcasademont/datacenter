@@ -34,6 +34,26 @@ def main(method, transform, temporal, layout, threshold, output):
 
     print("* Selected alpha = {}".format(gmrf.alpha_))
 
+    if threshold:
+        Q = gmrf.precision_.copy()
+        ts = np.arange(0., 1., 0.001)
+
+        bics = np.empty(len(ts))
+        connectivity = np.empty(len(ts))
+
+        n = Q.shape[0]
+        gmrf_test = GMRF()
+        gmrf_test.mean_ = np.mean(X, axis=0)
+        for i, t in enumerate(ts):
+            Q[Q < t] = 0
+            gmrf_test.precision_ = Q
+            bics[i], _ = gmrf_test.bic(X)
+            connectivity[i] = 1 - np.size(np.where(Q == 0)[0]) / (n * n)
+
+        fig, (ax, ax1) = plt.subplots(2, 1)
+        ax.plot(connectivity)
+        ax1.plot(bics)
+
     if output:
         results_name = os.path.join(os.path.dirname(__file__),
                                     "../results/")
