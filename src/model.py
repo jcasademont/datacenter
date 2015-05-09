@@ -57,7 +57,8 @@ def main(method, transform, temporal, layout, threshold, output):
     if output:
         results_name = os.path.join(os.path.dirname(__file__),
                                     "../results/")
-        np.save(results_name + output, gmrf.precision_)
+        np.save(results_name + output + "_prec", gmrf.precision_)
+        np.save(results_name + output + "_mean", gmrf.mean_)
         np.save(results_name + output + "_bic_scores", gmrf.bic_scores)
 
     plt.figure()
