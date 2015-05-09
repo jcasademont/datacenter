@@ -12,47 +12,62 @@ import transformations as tr
 
 from gmrf.gmrf import GMRF
 
-def scoring(X, gmrf, indices, l1_indices, train, test, nb_steps=None, id=-1):
+def build_vector(data, cols):
+    m = np.size(cols)
+    x = np.zeros((1, m))
+
+    for k in data.keys():
+        i = np.where(cols == k)[0][0]
+        x[0, i] = data[k]
+
+    return x
+
+def scoring(df, gmrf, names, train, test, nb_steps=None, id=-1):
+    X = df.values
+
     if not nb_steps:
         nb_steps = X[test].shape[0]
+
+    cols = df.columns.values
 
     gmrf.fit(X[train])
 
     X_test = X[test]
-    mean_test = np.mean(X_test[:, indices], axis=0)
+    Y = df[names].values[test]
+    mean_test = np.mean(Y, axis=0)
 
     if nb_steps == 1:
-        preds = gmrf.predict(X_test, indices)
-        scores = np.absolute(X_test[:, indices] - preds)
+        preds = gmrf.predict(X_test, names)
+        scores = np.absolute(Y - preds)
 
         ssRes = np.sum(np.power(scores, 2), axis=0)
-        ssTot = np.sum(np.power(X_test[:, indices] - mean_test, 2),
-                       axis=0)
+        ssTot = np.sum(np.power(Y - mean_test, 2), axis=0)
 
-        r2 = (1 - ssRes / ssTot).reshape(1, np.size(indices))
+        r2 = (1 - ssRes / ssTot).reshape(1, np.size(names))
 
     else:
-        scores = np.zeros((nb_steps, np.size(indices)))
+        scores = np.zeros((nb_steps, np.size(names)))
 
-        ssRes = np.zeros((nb_steps, np.size(indices)))
-        ssTot = np.zeros((nb_steps, np.size(indices)))
+        ssRes = np.zeros((nb_steps, np.size(names)))
+        ssTot = np.zeros((nb_steps, np.size(names)))
 
         for i in range(X_test.shape[0]):
 
-            pred = X_test[i, l1_indices]
+            pred = X_test[i, :]
+            data = dict(zip(cols, pred.ravel()))
 
             for n in range(min(nb_steps, X_test.shape[0] - i)):
-                x = X_test[i + n, :].reshape(1, X_test.shape[1]).copy()
-                x[0 , l1_indices] = pred
+                x = build_vector(data, cols)
 
-                pred = gmrf.predict(x, indices).ravel()
+                pred = gmrf.predict(x, names).ravel()
 
-                error = pred - X_test[i + n, indices]
+                error = pred - Y[i + n, :]
 
-                ssTot[n, :] += np.power(X_test[i + n, indices]
-                                        - mean_test, 2)
+                ssTot[n, :] += np.power(Y[i + n, :] - mean_test, 2)
                 ssRes[n, :] += np.power(error, 2)
                 scores[n, :] += np.absolute(error)
+
+                data = dict(zip(['l1_' + n for n in names], pred.ravel()))
 
         r2 = 1 - ssRes / ssTot
         for i in range(nb_steps):
@@ -61,7 +76,7 @@ def scoring(X, gmrf, indices, l1_indices, train, test, nb_steps=None, id=-1):
     if id >= 0:
         print("** Worker {} done.".format(id))
 
-    return r2[:568, :], scores[:568, :], gmrf.variances(indices)
+    return r2[:568, :], scores[:568, :], gmrf.variances(names)
 
 def main(alpha, transform, temporal, layout, steps, output):
     variables = getattr(layouts, layout)
@@ -75,18 +90,15 @@ def main(alpha, transform, temporal, layout, steps, output):
         df = df.join(df_shifted, how="outer")
         df = df.dropna()
 
+        names = list(filter(lambda x: 'l1_' not in x, df.columns.values))
+
     X = df.values
 
     if transform:
         print("* Tranform data")
         X = tr.to_normal(X)
 
-    # indices = np.append(np.arange(38), [42])
-    # l1_indices = np.append(np.arange(43, 81), [85])
-    indices = np.arange(38)
-    l1_indices = np.arange(42, 80)
-
-    gmrf = GMRF(alpha=alpha)
+    gmrf = GMRF(variables_names=df.columns.values, alpha=alpha)
 
     kf = KFold(df.shape[0], n_folds=5, shuffle=False)
 
@@ -94,8 +106,7 @@ def main(alpha, transform, temporal, layout, steps, output):
 
     print("* Scoring")
     kf_scores = [pool.apply_async(scoring,
-                 args=(X, gmrf, indices, l1_indices,
-                       train, test, steps, id))
+                 args=(df, gmrf, names, train, test, steps, id))
                  for id, (train, test) in enumerate(kf)]
 
     results = [p.get() for p in kf_scores]

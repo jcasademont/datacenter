@@ -6,13 +6,14 @@ from sklearn.covariance import GraphLassoCV, GraphLasso
 
 class GMRF():
 
-    def __init__(self, method="cv", alpha=None, verbose=False):
+    def __init__(self, method="cv", variables_names=[], alpha=None, verbose=False):
         self.alpha_ = alpha
         self.method_ = method
         self.bic_scores = []
         self.precision_ = None
         self.mean_ = None
         self.verbose = verbose
+        self.variables_names = np.array(variables_names)
 
     def check(self):
         if self.precision_ is None:
@@ -122,11 +123,13 @@ class GMRF():
         return -2 * ll + nb_params * np.log(X.shape[0]) \
             + 4 * nb_params * gamma * np.log(X.shape[1]), converged
 
-    def predict(self, X, indices):
+    def predict(self, X, names):
         self.check()
 
         Q = self.precision_
         mu = self.mean_
+
+        indices = [np.where(self.variables_names == n)[0][0] for n in names]
 
         _indices = list(filter(lambda x: x not in indices,
                                 np.arange(Q.shape[0])))
@@ -153,11 +156,13 @@ class GMRF():
 
         return preds
 
-    def variances(self, indices):
+    def variances(self, names):
         self.check()
 
         Q = self.precision_
         mu = self.mean_
+
+        indices = [np.where(self.variables_names == n)[0][0] for n in names]
 
         _indices = list(filter(lambda x: x not in indices,
                                 np.arange(Q.shape[0])))
