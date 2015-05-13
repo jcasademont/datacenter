@@ -20,6 +20,23 @@ datacenter_layout.update(
     {'ahu_1_outlet': (5, 12), 'ahu_2_outlet': (11, 12),
      'ahu_3_outlet': (5, 0), 'ahu_4_outlet': (11, 0)})
 
-full_layout = datacenter_layout.copy()
+datacenter_inlets_layout = datacenter_layout.copy()
+datacenter_inlets_layout.update(
+    {'ahu_1_air_on': (5, 13), 'ahu_2_air_on': (11, 13),
+     'ahu_3_air_on': (5, -1), 'ahu_4_air_on': (11, -1)})
+
+full_layout = datacenter_inlets_layout.copy()
 full_layout.update(
-        {'room_it_power_(kw)': (30, 30), 'ahu_1_air_on': (40, 40)})
+    {'room_it_power_(kw)': (30, 30)})
+
+ahu_layout = \
+    {'ahu_1_air_on': (5, 13), 'ahu_2_air_on': (11, 13),
+     'ahu_3_air_on': (5, -1), 'ahu_4_air_on': (11, -1),
+     'ahu_1_outlet': (5, 12), 'ahu_2_outlet': (11, 12),
+     'ahu_3_outlet': (5, 0), 'ahu_4_outlet': (11, 0),
+     'ahu_1_power': (5, 12), 'ahu_2_power': (11, 12),
+     'ahu_3_power': (5, 0), 'ahu_4_power': (11, 0),
+     'ahu_1_inlet': (5, 12), 'ahu_2_inlet': (11, 12),
+     'ahu_3_inlet': (5, 0), 'ahu_4_inlet': (11, 0),
+     'ahu_1_inlet_rh': (5, 12), 'ahu_2_inlet_rh': (11, 12),
+     'ahu_3_inlet_rh': (5, 0), 'ahu_4_inlet_rh': (11, 0), 'room_cooling_power_(kw)': (0,0), 'acu_supply_temperature_(c)': (0,0), 'acu_return_temperature_(c)': (0,0)}
