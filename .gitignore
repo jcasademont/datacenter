@@ -18,3 +18,4 @@ env/
 *.esp
 __pycache__/
 *.npy
+.venv
