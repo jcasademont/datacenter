@@ -6,7 +6,7 @@ from sklearn.covariance import GraphLassoCV, GraphLasso
 
 class GMRF():
 
-    def __init__(self, method="cv", variables_names=[], alpha=None, verbose=False):
+    def __init__(self, method="bic", variables_names=[], alpha=None, verbose=False):
         self.alpha_ = alpha
         self.method_ = method
         self.bic_scores = []
@@ -30,13 +30,13 @@ class GMRF():
             gl.fit(X)
             self.precision_ = gl.precision_
 
-        elif self.method_ is 'cv':
+        elif self.method_ == 'cv':
             gl = GraphLassoCV(verbose=self.verbose)
             gl.fit(X)
             self.alpha_ = gl.alpha_
             self.precision_ = gl.precision_
 
-        elif self.method_ is 'bic':
+        elif self.method_ == 'bic':
             min_score = np.inf
             min_precision = None
             alphas = np.arange(0.0, 5.0, 0.1)
@@ -62,7 +62,7 @@ class GMRF():
             self.precision_ = min_precision
 
         else:
-            raise NotImplementedError(method +
+            raise NotImplementedError(self.method_ +
                     " is not a valid method, use 'cv' or 'bic'")
 
     def _logpdf(self, x, mean, Q):
