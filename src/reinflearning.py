@@ -11,12 +11,13 @@ from sklearn.cross_validation import KFold
 def reward(state, action, discretiser):
     r = 0
 
-    if np.any(state >= 32):
-        r = -100 * np.size(np.where(state >= 32)[0])
+    # if np.any(state >= 32):
+    #     r = -100 * np.size(np.where(state >= 32)[0])
+    r = -np.sum(0.2 * np.power(state, 2))
 
-    for a in action:
-        r += np.where(discretiser.values == a)[0][0] \
-                - np.size(discretiser.values)
+    # for a in action:
+    #     r += np.where(discretiser.values == a)[0][0] \
+    #             - np.size(discretiser.values)
 
     return r
 
@@ -47,7 +48,7 @@ def main():
 
     gmrf.fit(train)
 
-    discretiser = Discretiser(5, 5, 30)
+    discretiser = Discretiser(4, 5, 25)
     mdp = MDP(gmrf, 1000, reward, 0.8, feature_creator, discretiser,
               l1_indices, np.array([38, 39, 40, 41]),
               np.array([80, 81, 82, 83]), indices)
@@ -56,12 +57,24 @@ def main():
     plt.figure()
     plt.hist(test[:, 38:42].ravel(), bins=5, range=(5, 30))
 
+    plt.figure()
+    plt.plot(test[:, 38:42])
+
     actions = np.empty((test.shape[0], 4))
     for i in range(actions.shape[0]):
         actions[i, :] = mdp.get_action(test[i, l1_indices])
 
     plt.figure()
     plt.hist(actions.ravel(), bins=5, range=(5, 30))
+
+    plt.figure()
+    plt.plot(actions[:, 0], label="1")
+    plt.plot(actions[:, 1], label="2")
+    plt.plot(actions[:, 2], label="3")
+    plt.plot(actions[:, 3], label="4")
+    plt.legend(loc=0)
+
+    print(np.mean(actions, axis=0))
 
     plt.show()
 
