@@ -1,6 +1,7 @@
 import os
 import argparse
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 import utils
@@ -22,11 +23,12 @@ def main(method, transform, temporal, layout, threshold, output):
         df = df.join(df_shifted, how="outer")
         df = df.dropna()
 
-    X = df.values
-
     if transform:
         print("* Tranform data")
-        X = tr.to_normal(X)
+        X = tr.to_normal(df.values)
+        df = pd.DataFrame(X, index=df.index.values, columns=df.columns.values)
+
+    X = df.values
 
     gmrf = GMRF(method=method[0])
 
