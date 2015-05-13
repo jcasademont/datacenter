@@ -24,6 +24,17 @@ class MDP():
         self.next_indices_ = np.append(self.next_state_, self.next_controls_)
         self.vector_size_ = np.size(self.next_indices_) * 2
 
+    def _get_next_state(self, state, controls):
+        x = np.zeros((1, self.vector_size_))
+        x[0, self.state_] = state
+        x[0, self.controls_] = controls
+
+        p = self.model_.predict(x, self.next_indices_)
+        x[0, self.next_indices_] = p[0, :]
+        p = x[0, self.next_state_]
+
+        return p
+
     def value_function(self, s):
         return self.linreg.predict(s)
 
@@ -45,12 +56,7 @@ class MDP():
                 for c in itertools.product(self.discretiser.values,
                                            repeat=np.size(self.controls_)):
 
-                    x = np.zeros((1, self.vector_size_))
-                    x[0, self.state_] = s
-                    x[0, self.controls_] = c
-
-                    p = self.model_.predict(x, self.next_indices_)
-                    p = p[0, self.next_state_]
+                    p = self._get_next_state(s, c)
 
                     q[c] = self.reward(s, c, self.discretiser) \
                          + self.gamma * self.value_function(p)
@@ -71,7 +77,8 @@ class MDP():
             if nb_iter % 10 == 0:
                 print("[MDP LEARNING] {} iters ...".format(nb_iter))
 
-        print("[MDP LEARNING] Number of iterations = {}".format(nb_iter))
+        print("[MDP LEARNING] Number of iterations = {}, r2 = {}"
+                .format(nb_iter, self.linreg.score(X, y)))
 
     def get_action(self, state):
         q = dict()
@@ -79,13 +86,7 @@ class MDP():
         for c in itertools.product(self.discretiser.values,
                                    repeat=np.size(self.controls_)):
 
-            x = np.zeros((1, self.vector_size_))
-            x[0, self.state_] = state
-            x[0, self.controls_] = c
-
-            p = self.model_.predict(x, self.next_indices_)
-            p = p[0, self.next_state_]
-
+            p = self._get_next_state(state, c)
             q[c] = self.value_function(p)
 
         return max(q.items(), key=operator.itemgetter(1))[0]
