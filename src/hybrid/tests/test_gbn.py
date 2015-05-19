@@ -6,6 +6,9 @@ from ..gbn import GBN
 
 class TestGBN(unittest.TestCase):
 
+    def setUp(self):
+        self.chain = GBN(['a', 'b', 'c'], edges=[('a', 'b'), ('b', 'c')])
+
     def test_log_conditional_prob(self):
         """ Test log cond. proba for a -> b """
         x = [2, 7]
@@ -15,9 +18,9 @@ class TestGBN(unittest.TestCase):
         gbn.edges = {('a', 'b'): 3}
 
         lcp = gbn.log_conditional_prob(x, 'a', [])
-        self.assertAlmostEquals(lcp, -18.2257913526)
+        self.assertAlmostEqual(lcp, -18.2257913526)
         lcp = gbn.log_conditional_prob(x, 'b', ['a'])
-        self.assertAlmostEquals(lcp, -18.9189385332)
+        self.assertAlmostEqual(lcp, -18.9189385332)
 
     def test_mdl(self):
         """ Test mdl for a -> b """
@@ -28,12 +31,11 @@ class TestGBN(unittest.TestCase):
         gbn.edges = {('a', 'b'): 3}
 
         mdl = gbn.mdl(X)
-        self.assertAlmostEquals(mdl, -159.829180543)
+        self.assertAlmostEqual(mdl, -159.829180543)
 
     def test_neighbours(self):
         """ Test get_neighbours function """
-        gbn = GBN(['a', 'b', 'c'], edges=[('a', 'b'), ('b', 'c')])
-        neighbours = gbn.get_neighbours()
+        neighbours = self.chain.get_neighbours()
         neighbours = [set(gbn.edges.keys()) for gbn in neighbours]
         neighbours_expected = \
                           [set([('a', 'b')]),
@@ -48,19 +50,19 @@ class TestGBN(unittest.TestCase):
 
     def test_fit_chain(self):
         """ Test fit params for chain network """
-        gbn = GBN(['a', 'b', 'c'], edges=[('a', 'b'), ('b', 'c')])
+        gbn = self.chain
         X = np.array([[1, 2, 9], [7, 14, 21]])
         gbn.fit_params(X)
 
-        self.assertEquals(gbn.nodes['a'][0], 4)
-        self.assertEquals(gbn.nodes['b'][0], 0.0)
-        self.assertEquals(gbn.edges[('a', 'b')], 2.0)
-        self.assertEquals(gbn.nodes['c'][0], 7)
-        self.assertEquals(gbn.edges[('b', 'c')], 1.0)
+        self.assertEqual(gbn.nodes['a'][0], 4)
+        self.assertEqual(gbn.nodes['b'][0], 0.0)
+        self.assertEqual(gbn.edges[('a', 'b')], 2.0)
+        self.assertEqual(gbn.nodes['c'][0], 7)
+        self.assertEqual(gbn.edges[('b', 'c')], 1.0)
 
-        self.assertEquals(gbn.nodes['a'][1], 3)
-        self.assertEquals(gbn.nodes['b'][1], 0.)
-        self.assertEquals(gbn.nodes['c'][1], 0.)
+        self.assertEqual(gbn.nodes['a'][1], 3)
+        self.assertEqual(gbn.nodes['b'][1], 0.)
+        self.assertEqual(gbn.nodes['c'][1], 0.)
 
     def test_fit_param(self):
         """ Test fit params for network with two parents """
@@ -68,15 +70,15 @@ class TestGBN(unittest.TestCase):
         X = np.array([[1, 8, 2], [7, 42, 10], [5, 18, 1]])
         gbn.fit_params(X)
 
-        self.assertAlmostEquals(gbn.nodes['a'][0], 13/3)
-        self.assertAlmostEquals(gbn.nodes['b'][0], 1.0)
-        self.assertAlmostEquals(gbn.edges[('a', 'b')], 3.0)
-        self.assertAlmostEquals(gbn.nodes['c'][0], 13/3)
-        self.assertAlmostEquals(gbn.edges[('c', 'b')], 2.0)
+        self.assertAlmostEqual(gbn.nodes['a'][0], 13/3)
+        self.assertAlmostEqual(gbn.nodes['b'][0], 1.0)
+        self.assertAlmostEqual(gbn.edges[('a', 'b')], 3.0)
+        self.assertAlmostEqual(gbn.nodes['c'][0], 13/3)
+        self.assertAlmostEqual(gbn.edges[('c', 'b')], 2.0)
 
     def test_to_multivaraite_gaussian(self):
         """ Test tranformation from GBN chain to multivariate gaussian """
-        gbn = GBN(['a', 'b', 'c'])
+        gbn = self.chain
         gbn.nodes = {'a': (1, 4), 'b': (-5, 4), 'c': (4, 3)}
         gbn.edges = {('a', 'b'): 0.5, ('b', 'c'): -1}
 
@@ -89,18 +91,18 @@ class TestGBN(unittest.TestCase):
 
     def test_fit_params_chain_more_data(self):
         """ Test fit params on chain network on 1000 points """
-        gbn = GBN(['a', 'b', 'c'], edges=[('a', 'b'), ('b', 'c')])
+        gbn = self.chain
         a = np.random.normal(5, 2, 1000)
         b = a * 3 + 9 + np.random.normal(0, 0.2, 1000)
         c = (-5) * b + 11 + np.random.normal(0, 0.5, 1000)
         X = np.array([a, b, c]).T
 
         gbn.fit_params(X)
-        self.assertAlmostEquals(gbn.nodes['a'][0], 5, delta=0.2)
-        self.assertAlmostEquals(gbn.nodes['b'][0], 9, delta=0.2)
-        self.assertAlmostEquals(gbn.edges[('a', 'b')], 3.0, delta=0.2)
-        self.assertAlmostEquals(gbn.nodes['c'][0], 11, delta=0.2)
-        self.assertAlmostEquals(gbn.edges[('b', 'c')], -5, delta=0.2)
+        self.assertAlmostEqual(gbn.nodes['a'][0], 5, delta=0.2)
+        self.assertAlmostEqual(gbn.nodes['b'][0], 9, delta=0.2)
+        self.assertAlmostEqual(gbn.edges[('a', 'b')], 3.0, delta=0.2)
+        self.assertAlmostEqual(gbn.nodes['c'][0], 11, delta=0.2)
+        self.assertAlmostEqual(gbn.edges[('b', 'c')], -5, delta=0.2)
 
     def test_fit_params_net_more_data(self):
         """ Test fit params on network on 1000 points """
@@ -112,45 +114,47 @@ class TestGBN(unittest.TestCase):
         X = np.array([a, b, c, d]).T
 
         gbn.fit_params(X)
-        self.assertAlmostEquals(gbn.nodes['a'][0], 5, delta=0.5)
-        self.assertAlmostEquals(gbn.nodes['b'][0], 9, delta=0.5)
-        self.assertAlmostEquals(gbn.edges[('a', 'b')], 3.0, delta=0.5)
-        self.assertAlmostEquals(gbn.edges[('c', 'b')], 5.0, delta=0.5)
-        self.assertAlmostEquals(gbn.nodes['c'][0], 3, delta=0.5)
-        self.assertAlmostEquals(gbn.nodes['d'][0], 1, delta=0.5)
-        self.assertAlmostEquals(gbn.edges[('b', 'd')], 2, delta=0.5)
+        self.assertAlmostEqual(gbn.nodes['a'][0], 5, delta=0.5)
+        self.assertAlmostEqual(gbn.nodes['b'][0], 9, delta=0.5)
+        self.assertAlmostEqual(gbn.edges[('a', 'b')], 3.0, delta=0.5)
+        self.assertAlmostEqual(gbn.edges[('c', 'b')], 5.0, delta=0.5)
+        self.assertAlmostEqual(gbn.nodes['c'][0], 3, delta=0.5)
+        self.assertAlmostEqual(gbn.nodes['d'][0], 1, delta=0.5)
+        self.assertAlmostEqual(gbn.edges[('b', 'd')], 2, delta=0.5)
 
-    # def test_fit_chain(self):
-    #     """ Test fit on chain network """
-    #     gbn = GBN(['a', 'b', 'c'])
-    #     a = np.random.normal(5, 1, 1000)
-    #     b = a * 3 + 9 + np.random.normal(0, 0.5, 1000)
-    #     c = (-5) * b + 4 + np.random.normal(0, 0.1, 1000)
-    #     X = np.array([a, b, c]).T
+    def test_prediction_on_chain(self):
+        """ Test predict on chain """
+        gbn = self.chain
+        gbn.nodes = {'a': (5, 1), 'b': (2, 1), 'c': (-1, 1)}
+        gbn.edges = {('a', 'b'): 3, ('b', 'c'): 7}
 
-    #     gbn.fit(X)
-    #     print(gbn.edges)
-    #     self.assertAlmostEquals(gbn.nodes['a'][0], 5, delta=0.5)
-    #     self.assertAlmostEquals(gbn.nodes['b'][0], 9, delta=0.5)
-    #     self.assertAlmostEquals(gbn.edges[('a', 'b')], 3.0, delta=0.5)
-    #     self.assertAlmostEquals(gbn.nodes['c'][0], 4, delta=0.5)
-    #     self.assertAlmostEquals(gbn.edges[('b', 'c')], -5, delta=0.5)
+        pred = gbn.predict(['b'], {'a': 8})
+        self.assertAlmostEqual(pred[0], 26.)
 
-    # def test_fit_net(self):
-    #     """ Test fit on larger network """
-    #     gbn = GBN(['a', 'b', 'c', 'd'])
-    #     a = np.random.normal(5, 1, 1000)
-    #     c = np.random.normal(2, 1, 1000)
-    #     b = 8 * c + a * 3 + 9 + np.random.normal(0, 0.5, 1000)
-    #     d = -1 * b + 6 + np.random.normal(0, 0.3, 1000)
-    #     X = np.array([a, b, c, d]).T
+    def test_prediction_mb(self):
+        """ Test that prediction given MB is same that given all nodes """
+        gbn = GBN(['a', 'b', 'c', 'd', 'e'])
+        gbn.nodes = {'a': (2, 1), 'b': (1, 3), 'c': (5, 0.5), 'd': (3, 1), 'e': (2, 3)}
+        gbn.edges = {('a', 'b'): 3, ('c', 'b'): 1, ('b', 'd'): 8, ('d', 'e'): 6}
 
-    #     gbn.fit(X)
-    #     print(gbn.edges)
-    #     self.assertAlmostEquals(gbn.nodes['a'][0], 5, delta=0.5)
-    #     self.assertAlmostEquals(gbn.nodes['b'][0], 9, delta=0.5)
-    #     self.assertAlmostEquals(gbn.edges[('a', 'b')], 3.0, delta=0.5)
-    #     self.assertAlmostEquals(gbn.edges[('c', 'b')], 8.0, delta=0.5)
-    #     self.assertAlmostEquals(gbn.nodes['c'][0], 2, delta=0.5)
-    #     self.assertAlmostEquals(gbn.nodes['d'][0], 6, delta=0.5)
-    #     self.assertAlmostEquals(gbn.edges[('b', 'd')], -1, delta=0.5)
+        pred_mb = gbn.predict(['b'], {'a': 1, 'c': 6, 'd': 5})
+        pred_full = gbn.predict(['b'], {'a': 1, 'c': 6, 'd': 5, 'e': 7})
+        self.assertEqual(pred_mb, pred_full)
+
+    def test_mb(self):
+        """ Test Markov blanket """
+        gbn = GBN(['a', 'b', 'c', 'd', 'e'])
+        gbn.nodes = {'a': (2, 1), 'b': (1, 3), 'c': (5, 0.5), 'd': (3, 1), 'e': (2, 3)}
+        gbn.edges = {('a', 'b'): 3, ('c', 'b'): 1, ('b', 'd'): 8, ('d', 'e'): 6}
+
+        mb = gbn.markov_blanket('b')
+        self.assertEqual(tuple(sorted(mb)), tuple(['a', 'c', 'd']))
+
+    def test_mb_no_node(self):
+        """ Test Markov blanket if node doesn't exist """
+        gbn = GBN(['a', 'b', 'c', 'd', 'e'])
+        gbn.nodes = {'a': (2, 1), 'b': (1, 3), 'c': (5, 0.5), 'd': (3, 1), 'e': (2, 3)}
+        gbn.edges = {('a', 'b'): 3, ('c', 'b'): 1, ('b', 'd'): 8, ('d', 'e'): 6}
+
+        mb = gbn.markov_blanket('f')
+        self.assertEqual(tuple(sorted(mb)), tuple([]))

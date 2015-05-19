@@ -85,7 +85,7 @@ class HRF():
                     values = X[j, evidences_indices]
                     evidences = dict(zip(keys, values))
                     pred = self.bns[i].predict([n], evidences)
-                    preds[j, idx] = pred
+                    preds[j, idx] = pred[0]
 
         return preds
 

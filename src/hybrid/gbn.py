@@ -220,7 +220,7 @@ class GBN():
             self.nodes = best_neighbour.nodes
 
     def proba(self, name, data, given):
-        if self.mu == None or self.cov == None:
+        if self.mu is None or self.cov is None:
             self.compute_mean_cov_matrix()
 
         ll = 0
@@ -255,7 +255,7 @@ class GBN():
         return ll
 
     def predict(self, names, evidences):
-        if self.mu == None or self.cov == None:
+        if self.mu is None or self.cov is None:
             self.compute_mean_cov_matrix()
 
         Q = inv(self.cov)
