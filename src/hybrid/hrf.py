@@ -92,11 +92,10 @@ class HRF():
     def variances(self, names):
         variances = np.zeros(len(names))
 
-        j = 0
         for i, n in enumerate(self.variables_names):
             if n in names:
+                idx = np.where(np.array(names) == n)[0][0]
                 var = self.bns[i].variance(n)
-                variances[j] = var
-                j += 1
+                variances[idx] = var
 
         return variances
