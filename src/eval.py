@@ -11,6 +11,7 @@ import plot as pl
 import transformations as tr
 
 from gmrf.gmrf import GMRF
+from hybrid.hrf import HRF
 
 def build_vector(data, cols):
     m = np.size(cols)
@@ -22,7 +23,7 @@ def build_vector(data, cols):
 
     return x
 
-def scoring(df, gmrf, names, train, test, nb_steps=None, id=-1):
+def scoring(df, model, names, train, test, nb_steps=None, id=-1):
     X = df.values
 
     if not nb_steps:
@@ -30,14 +31,14 @@ def scoring(df, gmrf, names, train, test, nb_steps=None, id=-1):
 
     cols = df.columns.values
 
-    gmrf.fit(X[train])
+    model.fit(X[train])
 
     X_test = X[test]
     Y = df[names].values[test]
     mean_test = np.mean(Y, axis=0)
 
     if nb_steps == 1:
-        preds = gmrf.predict(X_test, names)
+        preds = model.predict(X_test, names)
         scores = np.absolute(Y - preds)
 
         ssRes = np.sum(np.power(scores, 2), axis=0)
@@ -59,7 +60,7 @@ def scoring(df, gmrf, names, train, test, nb_steps=None, id=-1):
             for n in range(min(nb_steps, X_test.shape[0] - i)):
                 x = build_vector(data, cols)
 
-                pred = gmrf.predict(x, names).ravel()
+                pred = model.predict(x, names).ravel()
 
                 error = pred - Y[i + n, :]
 
@@ -76,9 +77,9 @@ def scoring(df, gmrf, names, train, test, nb_steps=None, id=-1):
     if id >= 0:
         print("** Worker {} done.".format(id))
 
-    return r2[:568, :], scores[:568, :], gmrf.variances(names)
+    return r2[:568, :], scores[:568, :], model.variances(names)
 
-def main(alpha, transform, temporal, layout, steps, output):
+def main(alpha, transform, temporal, layout, steps, output, hybrid):
     variables = getattr(layouts, layout)
 
     K = list(variables.keys())
@@ -98,7 +99,10 @@ def main(alpha, transform, temporal, layout, steps, output):
         print("* Tranform data")
         X = tr.to_normal(X)
 
-    gmrf = GMRF(variables_names=df.columns.values, alpha=alpha)
+    if hybrid:
+        model = HRF(83, 83, variables_names=df.columns.values)
+    else:
+        model = GMRF(variables_names=df.columns.values, alpha=alpha)
 
     kf = KFold(df.shape[0], n_folds=5, shuffle=False)
 
@@ -106,7 +110,7 @@ def main(alpha, transform, temporal, layout, steps, output):
 
     print("* Scoring")
     kf_scores = [pool.apply_async(scoring,
-                 args=(df, gmrf, names, train, test, steps, id))
+                 args=(df, model, names, train, test, steps, id))
                  for id, (train, test) in enumerate(kf)]
 
     results = [p.get() for p in kf_scores]
@@ -138,6 +142,8 @@ def main(alpha, transform, temporal, layout, steps, output):
     else:
         plt.figure()
         plt.plot(scores)
+        plt.figure()
+        plt.plot(r2)
 
     plt.show()
 
@@ -155,6 +161,9 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--temporal',
                         action='store_true', default=False,
                         help="Use temporal data.")
+    parser.add_argument('-b', '--hybrid',
+                        action='store_true', default=False,
+                        help="Use hybrid model.")
     parser.add_argument('-o', '--output',
                         help="File name to store output data.")
     args = parser.parse_args()
