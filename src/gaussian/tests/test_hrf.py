@@ -17,6 +17,7 @@ class TestHRF(unittest.TestCase):
         bnb = GBN(['a', 'b', 'c'])
         bnb.nodes = {'a': (3, 1), 'b': (2, 1), 'c': (4, 1)}
         bnb.edges = {('a', 'b'): -2, ('c', 'b'): 3}
+        bnb.compute_mean_cov_matrix()
 
         bnc = GBN(['c', 'b', 'd'])
         bnc.nodes = {'d': (3, 1), 'b': (2, 1), 'c': (-1, 1)}
@@ -25,6 +26,7 @@ class TestHRF(unittest.TestCase):
         bnd = GBN(['e', 'd'])
         bnd.nodes = {'e': (3, 1), 'd': (2, 1)}
         bnd.edges = {('e', 'd'): -2}
+        bnd.compute_mean_cov_matrix()
 
         bne = GBN(['d', 'e'])
         bne.nodes = {'d': (1, 1), 'e': (-7, 1)}

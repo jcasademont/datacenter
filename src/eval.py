@@ -1,6 +1,7 @@
 import os
 import argparse
 import numpy as np
+import pandas as pd
 import multiprocessing as mp
 import matplotlib.pyplot as plt
 from sklearn.cross_validation import KFold
@@ -10,8 +11,8 @@ import layouts
 import plot as pl
 import transformations as tr
 
-from gmrf.gmrf import GMRF
-from hybrid.hrf import HRF
+from gaussian.gmrf import GMRF
+from gaussian.hrf import HRF
 
 def build_vector(data, cols):
     m = np.size(cols)
@@ -77,7 +78,7 @@ def scoring(df, model, names, train, test, nb_steps=None, id=-1):
     if id >= 0:
         print("** Worker {} done.".format(id))
 
-    return r2[:568, :], scores[:568, :], model.variances(names)
+    return r2[:568, :], scores[:568, :]#, model.variances(names)
 
 def main(alpha, transform, temporal, layout, steps, output, hybrid):
     variables = getattr(layouts, layout)
@@ -98,15 +99,16 @@ def main(alpha, transform, temporal, layout, steps, output, hybrid):
     if transform:
         print("* Tranform data")
         X = tr.to_normal(X)
+        df = pd.DataFrame.from_records(columns=df.columns.values, data=X)
 
     if hybrid:
-        model = HRF(83, 83, variables_names=df.columns.values)
+        model = HRF(5, 10, variables_names=df.columns.values)
     else:
         model = GMRF(variables_names=df.columns.values, alpha=alpha)
 
     kf = KFold(df.shape[0], n_folds=5, shuffle=False)
 
-    pool = mp.Pool(processes=8)
+    pool = mp.Pool(processes=5)
 
     print("* Scoring")
     kf_scores = [pool.apply_async(scoring,
@@ -118,11 +120,11 @@ def main(alpha, transform, temporal, layout, steps, output, hybrid):
 
     r2 = results[0]
     kf_scores = results[1]
-    variances = results[2]
+    #variances = results[2]
 
     r2 = np.sum(r2, axis=0) / len(kf)
     scores = np.sum(kf_scores, axis=0) / len(kf)
-    var = np.sum(variances, axis=0) / len(kf)
+    #var = np.sum(variances, axis=0) / len(kf)
 
     if output:
         results_name = os.path.join(os.path.dirname(__file__),
@@ -130,7 +132,7 @@ def main(alpha, transform, temporal, layout, steps, output, hybrid):
         np.save(results_name + output + str(steps) + "_kf_scores", kf_scores)
         np.save(results_name + output + str(steps) + "_scores", scores)
         np.save(results_name + output + str(steps) + "_r2", r2)
-        np.save(results_name + output + str(steps) + "_var", var)
+       # np.save(results_name + output + str(steps) + "_var", var)
 
     labels = df.columns.values
     labels = list(filter(lambda x: 'ahu' not in x, labels))

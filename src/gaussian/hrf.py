@@ -1,5 +1,5 @@
 import numpy as np
-from hybrid.gbn import GBN
+from .gbn import GBN
 
 class HRF():
     def __init__(self, k, k_star, variables_names):
@@ -24,22 +24,25 @@ class HRF():
         R = np.empty(len(self.variables_names), dtype=object)
         for i in range(n):
             ratios = np.array([self._corr_ratio(X[:, i], X[:, j])
-                                for j in np.arange(n) if i != j])
+                                for j in np.arange(n)])
+            ratios[i] = np.inf
             ratios = np.argsort(ratios)[:self.k]
+            ratios = np.array(list(filter(lambda x: x != i, ratios)))
             R[i] = np.array(self.variables_names[ratios], dtype=str)
 
-        refined = True
         ite = 0
-        while refined:
-            refined = False
+        refined = np.array([True] * len(self.variables_names))
+        bns = np.empty(n, dtype=object)
+        while np.any(refined):
 
-            bns = np.empty(n, dtype=object)
             for i in range(n):
-                other = [np.where(self.variables_names == n)[0][0] for n in R[i]]
-                bn = GBN(self.variables_names[np.append([i], other)])
-                bn.fit(X[np.append([i], other)])
+                if refined[i]:
+                    other = [np.where(self.variables_names == n)[0][0] for n in R[i]]
+                    bn = GBN(self.variables_names[np.append([i], other)])
+                    bn.fit(X[:, np.append([i], other)])
 
-                bns[i] = bn
+                    bns[i] = bn
+                    refined[i] = False
 
             u = np.empty(n, dtype=object)
             for i in range(n):
@@ -50,9 +53,9 @@ class HRF():
             for i in range(n):
                 if(len(u[i]) <= self.k_star):
                     u_i = np.array(list(u[i]), dtype=str)
-                    other = [np.where(self.variables_names == n)[0][0] for n in u_i]
+                    other = np.array([np.where(self.variables_names == n)[0][0] for n in u_i], dtype=int)
                     bn_p = GBN(self.variables_names[np.append([i], other)])
-                    bn_p.fit(X[np.append([i], other)])
+                    bn_p.fit(X[:, np.append([i], other)])
 
                     mb = bns[i].markov_blanket(self.variables_names[i])
                     mb_p = bn_p.markov_blanket(self.variables_names[i])
@@ -63,31 +66,30 @@ class HRF():
                             data=X, given=mb_p)
                     if(proba_p > proba):
                         R[i] = np.array(u_i, dtype=str)
-                        refined = True
+                        refined[i] = True
 
             ite += 1
 
         self.bns = bns
 
     def predict(self, X, names):
-        preds = np.empty((X.shape[0], len(names)))
-        evid = [(n, i) for i, n in enumerate(self.variables_names)
-                       if n not in names]
-        evid = list(zip(*evid))
-        keys = evid[0]
-        evidences_indices = evid[1]
+        predictions = np.empty((X.shape[0], len(names)))
 
         for i, n in enumerate(self.variables_names):
             if n in names:
                 idx = np.where(np.array(names) == n)[0][0]
 
-                for j in range(X.shape[0]):
-                    values = X[j, evidences_indices]
-                    evidences = dict(zip(keys, values))
-                    pred = self.bns[i].predict([n], evidences)
-                    preds[j, idx] = pred[0]
+                nodes_names = np.array(
+                                list(filter(lambda x: x in names,
+                                     self.bns[i].variables_names))
+                                )
+                indices = [np.where(self.variables_names == n)[0][0]
+                           for n in self.bns[i].variables_names]
+                node_idx = np.where(nodes_names == n)[0][0]
+                preds = self.bns[i].predict(X[:, indices], nodes_names)
+                predictions[:, idx] = preds[:, node_idx]
 
-        return preds
+        return predictions
 
     def variances(self, names):
         variances = np.zeros(len(names))
@@ -95,7 +97,7 @@ class HRF():
         for i, n in enumerate(self.variables_names):
             if n in names:
                 idx = np.where(np.array(names) == n)[0][0]
-                var = self.bns[i].variance(n)
+                var = self.bns[i].variances(n)
                 variances[idx] = var
 
         return variances

@@ -5,7 +5,9 @@ import numpy as np
 from numpy.linalg import inv
 from scipy.stats import norm
 
-class GBN():
+from .gaussian import GaussianModel
+
+class GBN(GaussianModel):
     def __init__(self, variables_names, nodes=None, edges=dict()):
         if nodes:
             self.nodes = nodes
@@ -27,20 +29,27 @@ class GBN():
         for i, n in enumerate(self.variables_names):
             self.indices[n] = i
 
-        self.mu = None
-        self.cov = None
+        self.mean_ = None
+        self.precision_ = None
+        self.covariance_ = None
 
     def _ancestors(self, name):
+        if name not in self.variables_names:
+            raise ValueError(name + " not in variables")
+
         ancestors = []
         candidates = self._parents(name)
         while len(candidates) > 0:
             c = candidates.pop()
             ancestors.append(c)
-            candidates.extend(self._parents(c))
+            candidates.extend(self._parents(self.variables_names[c]))
 
         return ancestors
 
     def _parents(self, name):
+        if name not in self.variables_names:
+            raise ValueError("{} not in variables".format(name))
+
         parents_set = []
         for (p, c) in self.edges:
             if c == name:
@@ -49,6 +58,9 @@ class GBN():
         return parents_set
 
     def _children(self, name):
+        if name not in self.variables_names:
+            raise ValueError("{} not in variables".format(name))
+
         children_set = []
         for (p, c) in self.edges:
             if p == name:
@@ -63,7 +75,7 @@ class GBN():
         idx = self.indices[name]
         children = self._children(name)
         parents = self._parents(name)
-        children_parents = [self._parents(c) for c in children]
+        children_parents = [self._parents(self.variables_names[c]) for c in children]
 
         mb = children + parents
         for cps in children_parents:
@@ -73,28 +85,30 @@ class GBN():
 
         return self.variables_names[mb]
 
-    def log_conditional_prob(self, x, name, parents_names):
-        v = x[self.indices[name]]
+    def log_conditional_prob(self, X, name, parents_names):
+        values = X[:, self.indices[name]]
 
         mean = self.nodes[name][0]
+        means = np.ones(X.shape[0]) * mean
+
         parents_coefs = [self.edges[(p, name)] for p in parents_names]
-        parents_values = [x[self.indices[p]] for p in parents_names]
-        mean += np.sum([b * u for b, u in zip(parents_coefs, parents_values)])
+        parents_indices = np.array([self.indices[p] for p in parents_names], dtype=int)
+
+        means += np.dot(X[:, parents_indices], parents_coefs)
 
         std = self.nodes[name][1]
 
-        if std != 0:
-            lp = norm.logpdf(v, loc=mean, scale=std)
-            return lp
-        else:
-            return 0
+        lp = np.sum(norm.logpdf(values, loc=means, scale=std))
+
+        return lp
 
     def log_likelihood(self, X):
         ll = 0
-        for x in X:
-            for n in self.variables_names:
-                ll += self.log_conditional_prob(x, n,
+        for n in self.variables_names:
+            l = self.log_conditional_prob(X, n,
                         self.variables_names[self._parents(n)])
+            ll += l
+
         return ll
 
     def mdl(self, X):
@@ -147,20 +161,24 @@ class GBN():
         return neighbours
 
     def compute_mean_cov_matrix(self):
-        self.mu = np.zeros(len(self.variables_names))
+        self.mean_ = np.zeros(len(self.variables_names))
         sorted_by_ancestors = [i[0] for i in sorted(enumerate(self.variables_names), key=lambda x: len(self._ancestors(x[1])))]
 
         for v in sorted_by_ancestors:
-            self.mu[v] = self.nodes[self.variables_names[v]][0] \
-                  + np.sum([self.edges[(self.variables_names[p], self.variables_names[v])] * self.mu[p] for p in self._parents(self.variables_names[v])])
+            self.mean_[v] = self.nodes[self.variables_names[v]][0] \
+                  + np.sum([self.edges[(self.variables_names[p], self.variables_names[v])] * self.mean_[p] for p in self._parents(self.variables_names[v])])
 
-        self.cov = np.zeros((len(self.variables_names), len(self.variables_names)))
+        # S = np.zeros((len(self.variables_names), len(self.variables_names)))
+        S = np.diag([self.nodes[n][1] ** 2 for n in self.variables_names])
+        for j in sorted_by_ancestors:
+            for i in sorted_by_ancestors:
+                for k in self._parents(self.variables_names[j]):
+                    S[i, j] += self.edges[(self.variables_names[k],
+                                           self.variables_names[j])] * S[i, k]
+                S[j, i] = S[i, j]
 
-        I = np.eye(len(sorted_by_ancestors))
-        for i in sorted_by_ancestors:
-            for j in range(len(sorted_by_ancestors)):
-                self.cov[i, j] = np.sum([self.edges[(self.variables_names[k], self.variables_names[i])] * self.cov[j, k] for k in self._parents(self.variables_names[i])]) + I[i, j] * self.nodes[self.variables_names[i]][1]
-                self.cov[j, i] = self.cov[i, j]
+        self.covariance_ = S
+        self.precision_ = inv(self.covariance_)
 
     def fit_params(self, X):
         S = np.cov(X.T, bias=1)
@@ -198,14 +216,18 @@ class GBN():
 
     def fit(self, X):
         self.edges = {}
+        done = dict()
         while True:
             s = self.mdl(X)
             s_prime = -np.inf
             neighbours = self.get_neighbours()
             scores = []
             for nei in neighbours:
-                nei.fit_params(X)
-                scores.append(nei.mdl(X))
+                if not done.get(tuple(sorted(nei.edges.keys())), False):
+                    nei.fit_params(X)
+                    scores.append(nei.mdl(X))
+                else:
+                    done[tuple(sorted(nei.edges.keys()))] = True
 
             if len(scores) > 0:
                 s_prime = np.max(scores)
@@ -213,18 +235,20 @@ class GBN():
             if s_prime <= s:
                 break;
 
-            idx = np.where(np.array(scores) == s_prime)[0]
-            i = np.random.choice(idx)
-            best_neighbour = neighbours[i]
+            # idx = np.where(np.array(scores) == s_prime)[0]
+            # i = np.random.choice(idx)
+            best_neighbour = neighbours[np.argmax(scores)]
             self.edges = best_neighbour.edges
             self.nodes = best_neighbour.nodes
 
+        self.compute_mean_cov_matrix()
+
     def proba(self, name, data, given):
-        if self.mu is None or self.cov is None:
+        if self.mean_ is None or self.covariance_ is None:
             self.compute_mean_cov_matrix()
 
         ll = 0
-        Q = inv(self.cov)
+        Q = self.precision_
         idx = self.indices[name]
         evidence_indices = np.array([self.indices[n] for n in given if n in self.variables_names], dtype=int)
 
@@ -242,50 +266,13 @@ class GBN():
 
         iQaa = inv(Qaa)
 
-        mean_a = self.mu[indices]
-        mean_b = self.mu[evidence_indices]
+        mean_a = self.mean_[indices]
+        mean_b = self.mean_[evidence_indices]
 
-        std = np.sqrt(iQaa[pos, pos])
+        std = self.nodes[name][1]
 
-        for x in data:
-            mean = mean_a - (np.dot(iQaa,
-                    np.dot(Qab, (x[evidence_indices] - mean_b).T))).reshape(mean_a.shape)
-            ll += norm.logpdf(x[idx], mean[pos], std)
+        mean = mean_a - (np.dot(iQaa,
+            np.dot(Qab, (data[:, evidence_indices] - mean_b).T))).T
+        ll = np.sum(norm.logpdf(data[:, idx], mean[:, pos], std))
 
         return ll
-
-    def predict(self, names, evidences):
-        if self.mu is None or self.cov is None:
-            self.compute_mean_cov_matrix()
-
-        Q = inv(self.cov)
-
-        evidence_indices = [np.where(self.variables_names == e)[0][0] for e in evidences.keys() if e in self.variables_names]
-
-        indices = list(filter(lambda x: x not in evidence_indices, np.arange(Q.shape[0])))
-
-        result_indices = [self.indices[n] for n in names]
-
-        new_indices = np.append(indices, evidence_indices)
-
-        _Q = (Q[new_indices, :])[:, new_indices]
-
-        lim_a = np.size(indices)
-        Qaa = _Q[:lim_a, :lim_a]
-        Qab = _Q[:lim_a, lim_a:]
-
-        iQaa = inv(Qaa)
-
-        mean_a = self.mu[indices]
-        mean_b = self.mu[evidence_indices]
-
-        evidences_values = np.array([evidences[n] for n in self.variables_names[evidence_indices]])
-        pred = mean_a - np.dot(iQaa, np.dot(Qab, evidences_values - mean_b))
-
-        result = np.zeros(len(new_indices))
-        result[evidence_indices] = evidences_values
-        result[indices] = pred
-        return result[result_indices]
-
-    def variance(self, name):
-        return self.nodes[name][1] ** 2

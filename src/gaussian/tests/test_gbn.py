@@ -11,7 +11,7 @@ class TestGBN(unittest.TestCase):
 
     def test_log_conditional_prob(self):
         """ Test log cond. proba for a -> b """
-        x = [2, 7]
+        x = np.array([[2, 7]])
         gbn = GBN(['a', 'b'])
 
         gbn.nodes = {'a': (5, .5), 'b': (7, 1.)}
@@ -76,18 +76,26 @@ class TestGBN(unittest.TestCase):
         self.assertAlmostEqual(gbn.nodes['c'][0], 13/3)
         self.assertAlmostEqual(gbn.edges[('c', 'b')], 2.0)
 
+    def test_ancestors(self):
+        """ Test _ancestors function """
+        gbn = self.chain
+        self.assertEqual(gbn._ancestors('a'), [])
+        self.assertEqual(gbn._ancestors('b'), [0])
+        self.assertEqual(gbn._ancestors('c'), [1, 0])
+
     def test_to_multivaraite_gaussian(self):
         """ Test tranformation from GBN chain to multivariate gaussian """
-        gbn = self.chain
-        gbn.nodes = {'a': (1, 4), 'b': (-5, 4), 'c': (4, 3)}
+        gbn = GBN(['b', 'a', 'c'])
+        gbn.nodes = {'a': (1, 2), 'b': (-5, 2), 'c': (4, np.sqrt(3))}
         gbn.edges = {('a', 'b'): 0.5, ('b', 'c'): -1}
 
         gbn.compute_mean_cov_matrix()
 
-        assert_allclose(np.array(gbn.mu), np.array([1, -4.5, 8.5]))
-        assert_allclose(np.array(gbn.cov), np.array([[4, 2, -2],
-                                                     [2, 5, -5],
-                                                     [-2, -5, 8]]))
+        assert_allclose(np.array(gbn.mean_), np.array([-4.5, 1, 8.5]))
+        assert_allclose(np.array(gbn.covariance_),
+                        np.array([[5, 2, -5],
+                                  [2, 4, -2],
+                                  [-5, -2, 8]]))
 
     def test_fit_params_chain_more_data(self):
         """ Test fit params on chain network on 1000 points """
@@ -127,28 +135,34 @@ class TestGBN(unittest.TestCase):
         gbn = self.chain
         gbn.nodes = {'a': (5, 1), 'b': (2, 1), 'c': (-1, 1)}
         gbn.edges = {('a', 'b'): 3, ('b', 'c'): 7}
+        gbn.compute_mean_cov_matrix()
 
-        pred = gbn.predict(['b'], {'a': 8})
-        self.assertAlmostEqual(pred[0], 26.)
+        X = np.array([[8, 0, 0]])
+
+        pred = gbn.predict(X, ['b', 'c'])
+        self.assertAlmostEqual(pred[0][0], 26.)
 
     def test_prediction_mb(self):
         """ Test that prediction given MB is same that given all nodes """
         gbn = GBN(['a', 'b', 'c', 'd', 'e'])
         gbn.nodes = {'a': (2, 1), 'b': (1, 3), 'c': (5, 0.5), 'd': (3, 1), 'e': (2, 3)}
         gbn.edges = {('a', 'b'): 3, ('c', 'b'): 1, ('b', 'd'): 8, ('d', 'e'): 6}
+        gbn.compute_mean_cov_matrix()
 
-        pred_mb = gbn.predict(['b'], {'a': 1, 'c': 6, 'd': 5})
-        pred_full = gbn.predict(['b'], {'a': 1, 'c': 6, 'd': 5, 'e': 7})
-        self.assertEqual(pred_mb, pred_full)
+        X = np.array([[1, 0, 6, 5, 7]])
+
+        pred_mb = gbn.predict(X, ['b', 'e'])
+        pred_full = gbn.predict(X, ['b'])
+        self.assertEqual(pred_mb[0][0], pred_full[0][0])
 
     def test_mb(self):
         """ Test Markov blanket """
         gbn = GBN(['a', 'b', 'c', 'd', 'e'])
         gbn.nodes = {'a': (2, 1), 'b': (1, 3), 'c': (5, 0.5), 'd': (3, 1), 'e': (2, 3)}
-        gbn.edges = {('a', 'b'): 3, ('c', 'b'): 1, ('b', 'd'): 8, ('d', 'e'): 6}
+        gbn.edges = {('a', 'b'): 3, ('c', 'b'): 1, ('b', 'd'): 8, ('e', 'd'): 6}
 
         mb = gbn.markov_blanket('b')
-        self.assertEqual(tuple(sorted(mb)), tuple(['a', 'c', 'd']))
+        self.assertEqual(tuple(sorted(mb)), tuple(['a', 'c', 'd', 'e']))
 
     def test_mb_no_node(self):
         """ Test Markov blanket if node doesn't exist """
@@ -158,3 +172,17 @@ class TestGBN(unittest.TestCase):
 
         mb = gbn.markov_blanket('f')
         self.assertEqual(tuple(sorted(mb)), tuple([]))
+
+    def test_proba(self):
+        """ Test proba function """
+        gbn = self.chain
+        gbn.nodes = {'a': (5, 1), 'b': (2, 1), 'c': (-1, 1)}
+        gbn.edges = {('a', 'b'): 3, ('b', 'c'): 7}
+        gbn.compute_mean_cov_matrix()
+
+        X = np.array([[8, 2, 1], [5, 6, 1], [4, 4, 9]])
+        proba = gbn.proba('b', X, ['a'])
+        proba_parents = gbn.log_conditional_prob(X, 'b', np.array(['a']))
+        self.assertAlmostEqual(proba, proba_parents)
+
+
