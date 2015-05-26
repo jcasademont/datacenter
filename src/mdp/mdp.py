@@ -2,63 +2,74 @@ import operator
 import itertools
 import numpy as np
 from sklearn.linear_model import LinearRegression
+from sklearn.cross_validation import train_test_split
 
 class MDP():
     def __init__(self, model, nb_samples, reward, gamma, feature_extractor,
-                 discretiser, state_indices=None, action_indices=None,
-                 next_action_indices=None, next_state_indices=None):
+                 controller, control_vars):
 
-        self.model_ = model
-        self.nb_samples_ = nb_samples
+        self.model = model
+        self.nb_samples = nb_samples
         self.reward = reward
         self.gamma = gamma
         self.feature_extractor = feature_extractor
-        self.discretiser = discretiser
+        self.controller = controller
         self.linreg = LinearRegression()
 
-        self.state_ = state_indices
-        self.controls_ = action_indices
-        self.next_controls_ = next_action_indices
-        self.next_state_ = next_state_indices
+        self.control_vars = control_vars
 
-        self.next_indices_ = np.append(self.next_state_, self.next_controls_)
-        self.vector_size_ = np.size(self.next_indices_) * 2
+        self.prev_state_indices = []
+        self.next_state_indices = []
+        self.controls_indices = []
 
-    def _get_next_state(self, state, controls):
-        x = np.zeros((1, self.vector_size_))
-        x[0, self.state_] = state
-        x[0, self.controls_] = controls
+        for i, n in enumerate(model.variables_names):
+                if n in control_vars or n[3:] in control_vars:
+                    self.controls_indices.append(i)
+                elif 'l1_' in n:
+                    self.prev_state_indices.append(i)
+                else:
+                    self.next_state_indices.append(i)
 
-        p = self.model_.predict(x, self.next_indices_)
-        x[0, self.next_indices_] = p[0, :]
-        p = x[0, self.next_state_]
+    def _get_next_state(self, state, controls, controller):
+        x = np.zeros((1, np.size(self.model.variables_names)))
+        x[0, self.prev_state_indices] = state
+
+        outlet_values = []
+        for i, n in enumerate(self.control_vars):
+            outlet_values.append(controller.get_value(n, controls[i], x))
+        x[0, self.controls_indices] = outlet_values
+
+        p = self.model.predict(x, self.model.variables_names[self.next_state_indices])
 
         return p
 
     def value_function(self, s):
-        return self.linreg.predict(s)
+        return self.linreg.predict(s)[0]
 
     def learn(self):
-        samples = self.model_.sample(self.nb_samples_)[:, self.state_]
+        samples = self.model.sample(self.nb_samples)[:, self.prev_state_indices]
 
         converged = False
         nb_iter = 0
 
-        q = dict()
         y = np.empty(samples.shape[0])
 
-        self.linreg.coef_ = np.zeros(np.size(self.state_))
+        self.linreg.coef_ = np.zeros(np.size(self.next_state_indices))
         self.linreg.intercept_ = 0
 
         while not converged:
 
+            q = dict()
             for i, s in enumerate(samples):
-                for c in itertools.product(self.discretiser.values,
-                                           repeat=np.size(self.controls_)):
+                for c in itertools.product(self.controller.values,
+                                           repeat=np.size(self.control_vars)):
 
-                    p = self._get_next_state(s, c)
+                    p = self._get_next_state(s, c, self.controller)
 
-                    q[c] = self.reward(s, c, self.discretiser) \
+                    state = dict(zip(self.model.variables_names[self.prev_state_indices], s))
+                    action = dict(zip(self.control_vars, c))
+
+                    q[c] = self.reward(state, action, self.controller) \
                          + self.gamma * self.value_function(p)
 
                 y[i] = max(q.values())
@@ -68,7 +79,8 @@ class MDP():
             prev_theta = np.append(self.linreg.coef_.copy(),
                                    self.linreg.intercept_)
             print("[MDP LEARNING] Linear regression")
-            self.linreg.fit(X, y, n_jobs=4)
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.05)
+            self.linreg.fit(X_train, y_train, n_jobs=4)
             theta = np.append(self.linreg.coef_, self.linreg.intercept_)
             converged = np.allclose(prev_theta, theta, rtol=0.1)
 
@@ -78,15 +90,15 @@ class MDP():
                 print("[MDP LEARNING] {} iters ...".format(nb_iter))
 
         print("[MDP LEARNING] Number of iterations = {}, r2 = {}"
-                .format(nb_iter, self.linreg.score(X, y)))
+                .format(nb_iter, self.linreg.score(X_test, y_test)))
 
     def get_action(self, state):
         q = dict()
 
-        for c in itertools.product(self.discretiser.values,
-                                   repeat=np.size(self.controls_)):
+        for c in itertools.product(self.controller.values,
+                                   repeat=np.size(self.control_vars)):
 
-            p = self._get_next_state(state, c)
+            p = self._get_next_state(state, c, self.controller)
             q[c] = self.value_function(p)
 
         return max(q.items(), key=operator.itemgetter(1))[0]
