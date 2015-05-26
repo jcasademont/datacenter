@@ -94,15 +94,13 @@ def main(alpha, transform, temporal, layout, steps, output, hybrid):
 
         names = list(filter(lambda x: 'l1_' not in x, df.columns.values))
 
-    X = df.values
-
     if transform:
         print("* Tranform data")
-        X = tr.to_normal(X)
-        df = pd.DataFrame.from_records(columns=df.columns.values, data=X)
+        X = tr.to_normal(df.values)
+        df = pd.DataFrame(X, index=df.index.values, columns=df.columns.values)
 
     if hybrid:
-        model = HRF(5, 10, variables_names=df.columns.values)
+        model = HRF(variables_names=df.columns.values, k=5, k_star=10)
     else:
         model = GMRF(variables_names=df.columns.values, alpha=alpha)
 

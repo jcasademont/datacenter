@@ -36,7 +36,7 @@ def main():
 
     # plt.scatter(X_air_on.ravel() - X_outlet.ravel(), X_power.ravel())
     # plt.scatter(X_air_on.ravel() - X_outlet.ravel(), X_power.ravel())
-    for i in range(4):
+    # for i in range(4):
         # plt.figure()
         # plt.plot(X_air_on[:,i])
         # plt.plot(X_outlet[:,i])
@@ -45,11 +45,11 @@ def main():
         # plt.scatter(X_power[:,i], (X_inlet[:,i] + X_air_on[:,i]) / 2 - X_outlet[:,i])
         # plt.ylabel('Mean air on / inlet - outlet')
         # plt.xlabel('Power')
-        plt.figure()
-        plt.scatter(X_power[:,i], X_air_on[:,i] - X_outlet[:,i])
-        plt.ylabel('Air on - outlet')
-        plt.xlabel('Power')
-        plt.title('AHU {}'.format(i + 1))
+        # plt.figure()
+        # plt.scatter(X_power[:,i], X_air_on[:,i] - X_outlet[:,i])
+        # plt.ylabel('Air on - outlet')
+        # plt.xlabel('Power')
+        # plt.title('AHU {}'.format(i + 1))
         # plt.figure()
         # plt.scatter(X_power[:,i], X_inlet[:,i] - X_outlet[:,i])
         # plt.ylabel('Inlet - outlet')
@@ -73,9 +73,23 @@ def main():
     # plt.figure()
     # plt.scatter((np.sum(df_outlet, axis=1)),
     #             df['room_cooling_power_(kw)'])
+    plt.figure()
+    plt.scatter(X_power[:,2], X_air_on[:,2] - X_outlet[:,2])
+    plt.ylabel('Air on - outlet')
+    plt.xlabel('Power')
+    plt.title('AHU 3')
 
-    # linreg = LinearRegression()
+    low = np.where(X_air_on[:,2] - X_outlet[:,2] < 4)[0]
+    high = np.where(X_air_on[:,2] - X_outlet[:,2] >= 4)[0]
 
+    linreg = LinearRegression()
+
+    linreg.fit(X_power[low, 2].reshape(len(low), 1), (X_air_on[low, 2] - X_outlet[low, 2]).reshape(len(low), 1))
+    plt.plot(X_power[low, 2], linreg.predict((X_power[low, 2]).reshape(len(low), 1)))
+    print("{} Linear regression: intercept = {}, coef = {}".format(0, linreg.intercept_, linreg.coef_))
+    linreg.fit(X_power[high, 2].reshape(len(high), 1), (X_air_on[high, 2] - X_outlet[high, 2]).reshape(len(high), 1))
+    plt.plot(X_power[high, 2], linreg.predict((X_power[high, 2]).reshape(len(high), 1)))
+    print("{} Linear regression: intercept = {}, coef = {}".format(0, linreg.intercept_, linreg.coef_))
     # for i in range(4):
         # linreg.fit(X_air_on[:, i], X_outlet[:, i])
         # print("{} Linear regression: intercept = {}, coef = {}".format(i, linreg.intercept_, linreg.coef_))

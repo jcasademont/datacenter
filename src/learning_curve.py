@@ -62,7 +62,7 @@ def main():
     X = df.values
 
     gmrf = GMRF(variables_names=df.columns.values, alpha=0.1)
-    hrf = HRF(5, 10, variables_names=df.columns.values)
+    hrf = HRF(k=5, k_star=10, variables_names=df.columns.values)
     gbn = GBN(variables_names=df.columns.values)
 
     X_train, X_test = train_test_split(X, test_size=0.25)

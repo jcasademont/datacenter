@@ -53,7 +53,7 @@ class GMRF(GaussianModel):
                     if score <= min_score:
                         min_score = score
                         self.alpha_ = a
-                        min_precision = self.precision_
+                        min_precision = np.copy(self.precision_)
 
             self.precision_ = min_precision
 
