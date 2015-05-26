@@ -14,7 +14,7 @@ print((np.mean(a), np.std(a)))
 print((np.mean(b), np.std(b)))
 print((np.mean(c), np.std(c)))
 
-hrf = HRF(4, 4, np.array(['a', 'b', 'c']))
+hrf = HRF(k=4, k_star=4, variables_names=np.array(['a', 'b', 'c']))
 gbn = GBN(np.array(['a', 'b', 'c']), edges=[('a', 'b'), ('b', 'c')])
 gbn2 = GBN(np.array(['a', 'b', 'c']), edges=[('c', 'b'), ('b', 'a')])
 

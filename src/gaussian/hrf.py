@@ -1,8 +1,11 @@
+import itertools
 import numpy as np
 from .gbn import GBN
 
+from sklearn.cross_validation import train_test_split
+
 class HRF():
-    def __init__(self, k, k_star, variables_names):
+    def __init__(self, variables_names, k=None, k_star=None):
         self.k = k
         self.k_star = k_star
         self.bns = []
@@ -20,6 +23,39 @@ class HRF():
         return np.sqrt(num / den)
 
     def fit(self, X):
+        if self.k and self.k_star:
+            self._fit(X)
+        else:
+            k_cand = np.arange(1, 8)
+            k_star_cand = np.arange(2, 16)
+
+            names = list(filter(lambda x: 'l1_' not in x, self.variables_names))
+            indices_names = [np.where(np.array(names) == n)[0][0] for n in names]
+
+            X_train, X_test = train_test_split(X, test_size=0.2)
+            Y = X_test[:, indices_names]
+            min_error = np.inf
+            for p, q in itertools.product(k_cand, k_star_cand):
+                if p <= q:
+                    self.k = p
+                    self.k_star = q
+                    self._fit(X_train)
+
+                    preds = self.predict(X_test, names)
+                    error = np.sum(np.absolute(Y - preds))
+
+                    if error < min_error:
+                        min_score = error
+                        min_k = self.k
+                        min_k_star = self.k_star
+
+                    print("** Fitted {}".format((p, q)))
+
+            self.k = min_k
+            self.k_star = min_star
+            self._fit(self, X)
+
+    def _fit(self, X):
         n = len(self.variables_names)
         R = np.empty(len(self.variables_names), dtype=object)
         for i in range(n):
@@ -101,3 +137,11 @@ class HRF():
                 variances[idx] = var
 
         return variances
+
+    def sample(self, size=1):
+        samples = np.empty((size, len(self.variables_names)))
+
+        for i, n in enumerate(self.variables_names):
+            samples[:, i] = self.bns[i].sample(size)[:, 0]
+
+        return samples

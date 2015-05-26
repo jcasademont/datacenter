@@ -8,7 +8,7 @@ from ..gbn import GBN
 class TestHRF(unittest.TestCase):
 
     def setUp(self):
-        self.hrf = HRF(1, 2, ['a', 'b', 'c', 'd', 'e'])
+        self.hrf = HRF(k=1, k_star=2, variables_names=['a', 'b', 'c', 'd', 'e'])
 
         bna = GBN(['a', 'b'])
         bna.nodes = {'a': (3, 1), 'b': (2, 1)}
