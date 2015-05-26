@@ -1,0 +1,59 @@
+\documentclass{article}
+
+\begin{document}
+
+\section{Introduction}
+
+\subsection{Related work}
+Manual Controls - Thermo dynamic modelling - Workload management
+
+\subsection{Assumptions}
+Fixed layout - data for only one datacenter and one month -
+Normally distributed - Paranormal distribution
+
+\subsection{Objectives}
+\begin{itemize}
+    \item Find automated protocol to model datacenter temperature
+    \item Find generative model to allow sampling
+    \item Investigate controls of AHUs
+\end{itemize}
+
+\section{Undirected modelling}
+
+\subsection{Background}
+Markov Random Fields - GMRF (Multivariate gaussian) - Glasso - BIC
+
+\subsection{Static analysis}
+Correlation aanlysis (linear relationship) - Glasso failed to find sparse network
+
+\subsection{Temporal analysis}
+First order markov assumption - Result of GMRF - Simulated heatmap
+
+\section{Hybrid modelling}
+
+\subsection{Background}
+Bayesian Network - Linear gaussian bayesian network (Multivariate gaussian) - Correlation ratio (non-linear relationship) - Hybrid Random Fields (set of Multivariate gaussian)
+
+\subsection{Hybrid Random Fields}
+Result of HRF - More accurate and better R2 than GMRF on first steps - Simulated heatmap
+
+\section{Going Further: Controls}
+
+\subsection{Background}
+Reinforcement learning - Value function approximation
+
+\subsection{Preliminary results}
+
+\section{Conclusion}
+
+Manage to accurately predict racks temperature based on past data. Start to investigate reinforcement learning based on those models
+
+\subsection{Limitations}
+\begin{itemize}
+    \item Lack of workload variables per racks
+    \item Extend probabilistics model with nonparametric versions - use MCMC, Gibbs sampling
+    \item Further investigate controls, more reinforcement learning but also rule-based, optimal controls \dots
+\end{itemize}
+
+
+\end{document}
