@@ -9,9 +9,10 @@ import layouts
 import plot as pl
 import transformations as tr
 
-from gmrf.gmrf import GMRF
+from gaussian.hrf import HRF
+from gaussian.gmrf import GMRF
 
-def main(method, transform, temporal, layout, threshold, output):
+def main(method, transform, temporal, layout, hybrid, threshold, output):
     variables = getattr(layouts, layout)
 
     K = list(variables.keys())
@@ -30,14 +31,20 @@ def main(method, transform, temporal, layout, threshold, output):
 
     X = df.values
 
-    gmrf = GMRF(method=method[0])
+    if hybrid:
+        model = HRF(variables_names=df.columns.values)
+    else:
+        model = GMRF(method=method[0])
 
-    gmrf.fit(X)
+    model.fit(X)
 
-    print("* Selected alpha = {}".format(gmrf.alpha_))
+    if not hybrid:
+        print("* Selected alpha = {}".format(model.alpha_))
+    else:
+        print("* Selected k = {}, k star = {}".format(model.k, model.k_star))
 
     if threshold:
-        Q = gmrf.precision_.copy()
+        Q = model.precision_.copy()
         ts = np.arange(0., 1., 0.001)
 
         bics = np.empty(len(ts))
@@ -57,19 +64,25 @@ def main(method, transform, temporal, layout, threshold, output):
         ax1.plot(bics)
 
     if output:
-        results_name = os.path.join(os.path.dirname(__file__),
-                                    "../results/")
-        np.save(results_name + output + "_prec", gmrf.precision_)
-        np.save(results_name + output + "_mean", gmrf.mean_)
-        np.save(results_name + output + "_bic_scores", gmrf.bic_scores)
+        results_name = os.path.join(os.path.dirname(__file__), "../results/")
+        if hybrid:
+            BNs = np.empty(len(model.variables_names), dtype=object)
+            for i in range(len(BNs)):
+                BNs[i] = (model.bns[i].variables_names, model.bns[i].nodes, model.bns[i].edges)
+            np.save(results_name + output + "_bns", BNs)
+        else:
+            np.save(results_name + output + "_prec", model.precision_)
+            np.save(results_name + output + "_mean", model.mean_)
+            np.save(results_name + output + "_bic_scores", model.bic_scores)
 
-    plt.figure()
-    plt.plot(gmrf.bic_scores)
+    if not hybrid:
+        plt.figure()
+        plt.plot(model.bic_scores)
 
-    fig, ax = plt.subplots(1, 1)
-    pl.bin_precision_matrix(gmrf.precision_, df.columns.values, ax)
+        fig, ax = plt.subplots(1, 1)
+        pl.bin_precision_matrix(model.precision_, df.columns.values, ax)
 
-    plt.show()
+        plt.show()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Create GMRF model.')
@@ -85,6 +98,9 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--temporal',
                         action='store_true', default=False,
                         help="Use temporal data.")
+    parser.add_argument('-b', '--hybrid',
+                        action='store_true', default=False,
+                        help="Use hybrid model.")
     parser.add_argument('-r', '--threshold',
                         action='store_true', default=False,
                         help="Use the threshold method.")
