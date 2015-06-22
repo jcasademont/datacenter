@@ -4,6 +4,7 @@ import layouts
 import plot as pl
 import utils
 import matplotlib.pyplot as plt
+from matplotlib import rc
 
 from gaussian.gbn import GBN
 
@@ -17,27 +18,28 @@ def main(layout, gmrf, hybrid):
     df = df.join(df_shifted, how="outer")
     df = df.dropna()
 
-    if gmrf and len(gmrf) > 0:
+    if gmrf is not None and len(gmrf) > 0:
         Q = np.load(gmrf[0])
         bics = np.load(gmrf[1])
 
-    if len(hybrid) > 0:
+    if hybrid is not None and len(hybrid) > 0:
         BNs = np.load(hybrid[0])
 
-    if gmrf and Q and bics:
+    if gmrf is not None and Q is not None and bics is not None:
         plt.figure()
-        plt.plot(np.arange(0.1, 5, 0.1), bics)
+        plt.plot(np.arange(0.1, 5, 0.1), bics, 'o-')
+        plt.ylabel("BIC score")
+        plt.xlabel("$\\alpha$ parameter")
         fig, ax = plt.subplots(1, 1)
-        pl.bin_precision_matrix(Q, df.columns.values, ax)
+        pl.bin_precision_matrix(Q, df.columns.values, ax, add_color=True)
 
-    if BNs is not None:
+    if hybrid is not None and BNs is not None:
         for i in range(len(BNs)):
-            gbn = GBN(variables_names=BNs[i][0], nodes=BNs[i][1],
-                      edges=BNs[i][2])
-            gbn.compute_mean_cov_matrix()
             fig, ax = plt.subplots(1, 1)
+            fig.subplots_adjust(right=0.75)
+            fig.subplots_adjust(left=0.75)
+            pl.plot_bn(BNs, df.columns.values, df.columns.values[i], ax)
             ax.set_title(df.columns.values[i])
-            pl.bin_precision_matrix(gbn.precision_, gbn.variables_names, ax)
 
     plt.show()
 
