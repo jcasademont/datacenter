@@ -49,11 +49,11 @@ class HRF():
                         min_k = self.k
                         min_k_star = self.k_star
 
-                    print("** Fitted {}".format((p, q)))
+                    print("** Fitted {} - {}".format((p, q), error))
 
             self.k = min_k
-            self.k_star = min_star
-            self._fit(self, X)
+            self.k_star = min_k_star
+            self._fit(X)
 
     def _fit(self, X):
         n = len(self.variables_names)
@@ -73,7 +73,7 @@ class HRF():
 
             for i in range(n):
                 if refined[i]:
-                    other = [np.where(self.variables_names == n)[0][0] for n in R[i]]
+                    other = np.array([np.where(self.variables_names == n)[0][0] for n in R[i]], dtype=int)
                     bn = GBN(self.variables_names[np.append([i], other)])
                     bn.fit(X[:, np.append([i], other)])
 
