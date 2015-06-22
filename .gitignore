@@ -16,6 +16,11 @@ env/
 *.bkp
 *.png
 *.esp
+*.nav
+*.snm
+*.toc
+*.fls
+*.fdb_latexmk
 __pycache__/
 *.npy
 .venv

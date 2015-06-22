@@ -1,59 +1,874 @@
-\documentclass{article}
+\documentclass[11pt]{report}
 
-\begin{document}
+\usepackage{nameref}
+\usepackage{graphicx}
+\usepackage{fontenc}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{sectsty}
+\usepackage{hyperref}
+\usepackage[some]{background}
+\usepackage{fancyhdr}
+\hypersetup{
+	colorlinks,
+	citecolor=black,
+	filecolor=black,
+	linkcolor=black,
+	urlcolor=black
+}
 
-\section{Introduction}
+% \usepackage{tgbonum}
 
-\subsection{Related work}
-Manual Controls - Thermo dynamic modelling - Workload management
+% \usepackage{tocloft}
+% % \renewcommand{\cftsecfont}{\bfseries}
+% % \renewcommand{\cftsubsecfont}{\bfseries}
+% \renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
 
-\subsection{Assumptions}
-Fixed layout - data for only one datacenter and one month -
-Normally distributed - Paranormal distribution
+% \setlength\parskip{\baselineskip}
+% \setlength{\parindent}{0ex}
 
-\subsection{Objectives}
+% \renewcommand{\contentsname}{\textcolor{NavyBlue}{Table of Contents}}
+% \setcounter{secnumdepth}{-3} % sections are level 1
+
+% \makeatletter
+% \newcommand*{\currentname}{\@currentlabelname}
+% \makeatother
+
+% \fancypagestyle{myheader}{
+%   \fancyhf{}
+%   \fancyhead[L]{\leftmark}
+% 	\fancyhead[R]{\currentname}
+% 	\fancyfoot[C]{\color{RoyalBlue}{-} \color{black}{\thepage} \color{RoyalBlue}{-}}
+%   \renewcommand{\headrule}{\hbox to\headwidth{%
+%     \color{RoyalBlue}\leaders\hrule height \headrulewidth\hfill}}
+% 	  \renewcommand{\footrulewidth}{0pt}% No footer rule
+% }
+% \setlength{\headheight}{21pt}
+
+% \pagestyle{myheader}
+% \tocloftpagestyle{myheader}
+
+% \sectionfont{\color{NavyBlue}}
+% \subsectionfont{\color{MidnightBlue}}
+% \subsubsectionfont{\color{CadetBlue}}
+
+\usepackage{fancyhdr}
+\usepackage{amsmath}
+\usepackage{subcaption}
+\usepackage{gensymb}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage[]{algorithm2e}
+\usepackage[parfill]{parskip}
+\usepackage[section]{placeins}
+
+\usepackage[toc,page]{appendix}
+
+\captionsetup{font=small, justification=centering}
+\captionsetup[subfigure]{font=footnotesize, justification=centering}
+
+\usepackage{caption}
+
+\usepackage{geometry}
+\geometry{a4paper,
+    total={210mm,297mm},
+    left=30mm,
+    right=30mm,
+    top=20mm,
+    bottom=20mm,
+}
+
+
+\renewcommand{\baselinestretch}{1.2}
+
+\definecolor{titlepagecolor}{cmyk}{1,.60,0,.40}
+
+\fancypagestyle{myheader}{
+    \renewcommand{\headrule}{\hbox to\headwidth{%
+              \color{titlepagecolor}\leaders\hrule height \headrulewidth\hfill}}
+}
+
+\pagestyle{myheader}
+\DeclareFixedFont{\bigsf}{T1}{phv}{b}{n}{1.5cm}
+
+\backgroundsetup{
+    scale=1,
+    angle=0,
+    opacity=1,
+    contents={\begin{tikzpicture}[remember picture,overlay]
+             \path [fill=titlepagecolor] (-0.5\paperwidth,5) rectangle (0.5\paperwidth,10);
+     \end{tikzpicture}}
+ }
+ \makeatletter
+ \def\printauthor{%
+         {\large \@author}}
+         \makeatother
+         \author{%
+             Author:
+                 Jean Casademont \\
+                         \texttt{jc4711@ic.ac.uk}\vspace{40pt} \\
+                                        }
+                                         \begin{document}
+                                         \begin{titlepage}
+                                             \BgThispage
+                                             \newgeometry{left=1cm,right=4cm}
+                                             \vspace*{2cm}
+                                             \noindent
+                                             \textcolor{white}{\bigsf Building a Smart Eco-system for Data Centres}
+                                             \vspace*{2.5cm}\par
+                                             \noindent
+\begin{minipage}{0.4\textwidth}
+\begin{flushleft} \large
+\emph{Author:}\\
+Jean \textsc{Casademont} % Your name
+\end{flushleft}
+\end{minipage}
+~
+\begin{minipage}{0.4\textwidth}
+\begin{flushright} \large
+\emph{Supervisors:} \\
+Dr. Dalal \textsc{Alrajeh} \\% Supervisor's Name
+Dr. Luke \textsc{Dickens} % Supervisor's Name
+\end{flushright}
+\end{minipage}\\[4cm]
+                                                                             \end{titlepage}
+                                                                             \restoregeometry
+
+\clearpage
+\thispagestyle{empty}
+\mbox{}
+\clearpage
+
+\tableofcontents
+\clearpage
+
+\chapter*{Abstract}%
+\addcontentsline{toc}{chapter}{\numberline{}Abstract}%
+As cloud computing become more and more present in our computing usage, powerful data centers are more and more needed. Those data centers consume a lot a energy, notably for their cooling needs. As we collect data on those servers farm we can start thinking about automated agent capable of autonomously controlling the cooling infrastructure of a data center. Such an agent could potentially reduce dramatically the power consumption of data center.
+
+This work is the first step toward an automated cooling controller, by accurately modeling the temperatures of racks in a data center using both spatial and temporal relationships.
+
+\chapter*{Acknowledgements}%
+I would like to thank my supervisors Dr. Dalal Alrajeh and Dr. Luke Dickens for their constant advices and guidances during this project.
+
+My personal tutor, Prof. Ian Hodkinson for his support during my years at Imperial.
+
+And of course my parents, for everything.
+
+\addcontentsline{toc}{chapter}{\numberline{}Acknowledgements}%
+
+\chapter{Introduction}
+
+Data centers are a cornerstone of Internet infrastructure. As a simple example, most of us use email providers who host their services on servers in data centers. With the recent advance of cloud computing, servers in data centers are not only used to serve web pages but are more and more subject to intense calculations. Companies and individuals alike may access to the computing power of data centers through cloud computing services such as Amazon AWS.
+
+This strong reliance on data center forces their operators to keep increasing the computing power of the servers farms. And with the increase of computing power more and more cooling is needed to minimise the strain on the hardware. The largest data centers have enormous cooling need and it is not rare for those to use their environment to help cool their infrastructure, such as using the water of a nearby lake.
+
+However all the energy consumed for cooling may not be used effectively. One of Google main advice to reduce energy consumption in data center is to "adjust the thermostat" \cite{Google:thermo}, and effectively increase the data center ambient temperature. The fact such a simple measure is still advised shows how inefficient some data center can be at managing their cooling resources.
+
+The goal of this thesis is to automatically model the temperature inside a data center as a first step toward a fully automated cooling controller.
+
+\section{Motivation}
+
+A fully automated cooling controller would be a great step to help bring more efficiency in data center management. A fully automated agent would be able to adapt to several kind of infrastructures and therefore be cheaper to implement for smaller data center operators compared to expensive physical simulation.
+
+As the first step toward this goal, we need to be able to model our data center and more specifically its temperature in different points. Indeed if we want our controller to be able to learn the most efficient controls, we need to be able to run simulations on a model.
+
+In we want a fully automated infrastructure, our model needs to be learned automatically and has to adapt to different data centers or layouts inside them.
+
+\section{Objectives}
+
+The objectives of the present work are as follow:
 \begin{itemize}
-    \item Find automated protocol to model datacenter temperature
-    \item Find generative model to allow sampling
-    \item Investigate controls of AHUs
+    \item We first need to investigate the dataset provided as a first step toward building a model.
+    \item We then need to find a model that fits accurately our dataset.
+    \item Finally, we need to simulate data using our model so as to investigate the behaviour of our model when given sets of controls absent from the original dataset.
 \end{itemize}
 
-\section{Undirected modelling}
+The outline of this thesis is as follow: Chapter 2 provides a background on research done in the domain of data center management as well as foundations on the techniques used in the following chapters. Chapter 3 introduces our dataset and begin investigating relations between its different variables as well as simulation using a first model. Chapter 4 introduces a more complex model and shows its accuracy on our dataset. Finally Chapter 5 concludes this work and open the discussion on the limitations and further work.
 
-\subsection{Background}
-Markov Random Fields - GMRF (Multivariate gaussian) - Glasso - BIC
+\chapter{Background}
 
-\subsection{Static analysis}
-Correlation aanlysis (linear relationship) - Glasso failed to find sparse network
+\section{Related work}
 
-\subsection{Temporal analysis}
-First order markov assumption - Result of GMRF - Simulated heatmap
+Data centers cooling system are traditionally controlled by a simple algorithm. Similar to a thermostat, it compares the supplied desire temperature of the data center with the return hot air at the Computer Room Air Conditioning (CRAC) units. This very simple controller is often conservative to make sure that all areas of the data center are below a given temperature, above which the sustainability of the equipment could be at risk. As a consequence of its conservativeness and lack of finer controls, this cooling strategy is far from being efficient.
 
-\section{Hybrid modelling}
+A lot of research have been made to increase the efficiency of the data center in term of operating cost. Early efforts were made to improve the layout of data centers. Methods such as hot/cold aisle containment, which consists of preventing the mixing of cold and hot air, are now broadly used in the industry. This rule of thumb methods could be complemented by computational fluid dynamics (CFD)\cite{Rambo:2007} analysis to further improve the layout of a data center. However, the CFD analysis, which simulates the airflows within the data center under analysis, is computationally intensive and is only relevant for the data center under test.
 
-\subsection{Background}
-Bayesian Network - Linear gaussian bayesian network (Multivariate gaussian) - Correlation ratio (non-linear relationship) - Hybrid Random Fields (set of Multivariate gaussian)
+Other techniques focus on a better management of the workload distribution between servers. Thus, by allocating jobs so that the workload is uniformly distributed between servers, we get a uniform distribution of the temperature across the data center and an optimal supply temperature can then be computed\cite{Parolini:2008}. One can also detect when an idle server can be switched off to save energy. This task is not straightforward since a server being restarted needs a setup time before being operational\cite{Pakbaznia:2009}\cite{Gandhi:2011}.
+These techniques improve the efficiency data centers but keep controlling the cooling system in a naive way.
 
-\subsection{Hybrid Random Fields}
-Result of HRF - More accurate and better R2 than GMRF on first steps - Simulated heatmap
+With the increase availability of cheap sensor, a finer measurement of the state of a data center is possible and can lead to truly dynamical cooling system\cite{Bash:2006}. The method presented while using a dynamical cooling strategy is only reacting to the data presently measured and lack a model to be able to predict future data. Moreover, it needs a calibration phase to tune the sensor response to a given data center.
 
-\section{Going Further: Controls}
+Data from those sensor have been used to model data centers and predict its future state. For instance, Google uses artificial neural network to predict the Power usage effectiveness (PUE) of its data centers\cite{Gao:2014}. PUE is a ratio of the total amount of energy used to the energy used for computing tasks. It is a widely used indicator of the effectiveness of a data center. This model of the PUE is used to predict the effect of parameters change on the effectiveness of data centers.
 
-\subsection{Background}
-Reinforcement learning - Value function approximation
+\section{Probabilistic Graphical Models}
 
-\subsection{Preliminary results}
+Probabilistic graphical models (PGM) are a framework allowing the representation of distribution with the help of a graph. The nodes of the graph represent the random variables while its structure encode the dependences between those variables. The two main categories of PGM are Markov Radom Fields and Bayesian Networks and are discussed in more detail respectively in Chapter 3 an 4.
 
-\section{Conclusion}
+PGM provides a lot of advantages. First graph representation is intuitive and can be easily read. This is especially useful when starting on a new problems with unknown relationships between variables.
+Moreover, as a probabilistic model, PGM takes into account the uncertainty of the data. Since real data always exhibit uncertainty probabilistic models can be view as more faithful to the reality.
 
-Manage to accurately predict racks temperature based on past data. Start to investigate reinforcement learning based on those models
+\section{Model selection}
 
-\subsection{Limitations}
+When fitting data to a model, we often need to be able to choose the best models among severals. It could be two completely different models or just the same model with different parameters values.
+
+\subsection{Bayesian Information Criterion}
+Bayesian Information Criterion, or BIC, is one of the measure to discriminate between model. BIC is defined as:
+
+$$bic = - ln p(D | \theta) + k * ln(|D|)$$
+
+where $p(D | \theta)$ is the probability of the dataset given the parameter of the model, $k$ is the number of parameters in the model and $|D|$ is the number of data points.
+
+We want to minimise the BIC  so that the log-probability of the dataset given the parameters is maximised. We remind that maximising the log-probability or the probability itself is equivalent. The term $k * ln(|D|)$ is used as a regularisation term. Ideally, we want the number of parameters to be as low as possible.
+
+\subsection{Coefficient of determination}
+
+The coefficient of determination, or $R^2$ value is another way to rank how well a model fits the data. The $R^2$ value is defined as :
+
+$$R^2 = 1 - \frac{SS_{res}}{SS_{tot}}$$
+
+where $SS_{tot}$ is the squared error between the data points and their mean:
+
+$$SS_{tot} = \sum_i (y_i - \mu_y)^2$$
+
+and $SS_{res}$ is the squared error between the data points and the model predicted value $f$:
+
+$$SS_{res} = \sum_i (y_i - f_i)^2$$
+
+Thus the $R^2$ value tells us how well a model is predicting the data compared to the naive predictor that is the mean of the data. A value close to one means that the model a lot better than the mean as a predictor, a negative value means that the mean of the value is a better predictor and thus that the model is useless.
+
+\subsection{K-fold cross validation}
+Contrary to the two methods above the K-Fold cross validation does not compare between two models but rather reports a absolute error between the predictor and the data.
+
+The procedure divide our dataset into K parts (or folds) then uses k-1 parts to train to model and the remaining fold to test the data upon. The cross validation reports a value given a error function. One such function could be:
+
+$$e = \sum_i |f_i - y_i|$$
+
+It is called the deviation error and is used in the remaining of our work.
+
+Once procedure has scored a fold, another fold is chosen to be scored while the k-1 others folds are used to retrain the model.
+
+Usually the final reporting error is a average of the error computed with each fold. This allows to reduce bias in our error estimate.
+\chapter{Exploring our data}
+
+In this chapter we investigate the relationships between the variables in our dataset and model our data using a simple probabilistic model.
+
+\section{Markov Random Fields \label{sec:MRF}}
+A Markov Random Field (MRF) \cite{kindermann1980markov} is a probabilistic graphical model which can be represented by an undirected graph, making it especially useful to model spatial dependency. In a MRF, two variables A, B are independent given all the other variables if and only if there is no edge between A and B.
+
+We define a clique in a graph as a set of vertices that are fully connected between themselves. The joint distribution of a MRF can be factored, for every clique $c$ in its graph, as:
+
+$$p(y|\theta) = \frac{1}{Z(\theta)} \prod_c \phi_c(y_c|\theta_c)$$
+
+    $\phi_c$ is called a potential function and can be any positive function. $Z(\theta)$ is the partition function which ensures that the distribution sums to 1.
+
+If we consider the example in Figure~\ref{mrf_ex}, we can write its joint distribution as:
+
+$$p(y|\theta) = \frac{1}{Z(\theta)} \phi_1(a, b, c|\theta_1)\phi_2(c, d|\theta_2)$$
+
+In a MRF, a variable is independent of all the other given its direct neighbour. Following the same example, we see that variable A is independent of D given C.
+
+\begin{figure}[!htb]
+    \includegraphics{images/mrf_ex.pdf}
+    \caption{Example of a Markov Random Field}
+    \label{mrf_ex}
+\end{figure}
+
+A Pairwise Markov Random Field (PMRF) is a MRF whose factorisation uses only pairs of variables. This special case is simpler especially since specifying potential functions for a pair of variable is more intuitive. But PMRF are less general and all Markov networks may not be represented by a PMRF. Following the Pairwise MRF model, the network shown in Figure~\ref{mrf_ex} has a joint distribution:
+
+$$p(y|\theta) = \frac{1}{Z(\theta)} \phi_1(a, b|\theta_1)\phi_2(b, c|\theta_2)\phi_3(a, c|\theta_3)\phi_4(c, d|\theta_4)$$
+
+\subsection{Gaussian Markov Random Field}
+
+A Gaussian Markov Random Field (GMRF) is a Pairwise MRF with joint distribution:
+
+$$p(y|\theta) \propto \prod_{s \sim t} \phi_{st}(y_s, y_t) \prod_t \phi_t(y_t)$$
+
+The potential functions are squared exponentials of the form:
+
+$$\phi_st(y_s, y_t) = exp(-\frac{1}{2} y_s Q_{st} y_t)$$
+$$\phi_t = exp(-\frac{1}{2} Q_{tt} y_t^2 + \eta_t y_t)$$
+
+The joint distribution can the be rewritten as:
+
+$$p(y|\theta) \propto exp(\eta^T y - \frac{1}{2} y^T Q y)$$
+
+This is a multivariate Gaussian distribution with $Q = \Sigma^{-1}$ and $\eta = Q\mu$. $\mu$ is the mean vector and the matrix $Q$ is the inverse of covariance matrix and is called the precision matrix.
+
+We can note that if $Q_{st} = 0$ there is no term connecting $y_s$ and $y_t$, therefore $y_s$ is independent from $y_t$ given the other variables. As we have seen in \ref{sec:MRF}, in a MRF there is no edge between two variables if they are independent. Therefore, in the case of GMRF, the matrix $Q$ defines the structure of the graph where there is an edge between two variables A, B if and only if $Q_{ab} \neq 0$ \cite{Murphy:2012:MLP:2380985}.
+
+\subsection{Graph Lasso}
+
+In order to learn the parameters of a GMRF, we need to find the sparse precision matrix (ie the inverse covariance matrix) of the multivariate Gaussian. Indeed, we prefer a sparse precision matrix so that the corresponding graph is not fully connecting. The mean vector of the Gaussian is simply the empirical mean vector of the data.
+
+The graphical lasso \cite{citeulike:2134265}, or Glasso, is an algorithm to find such precision matrix. The algorithm uses gradient descent to maximise:
+
+\begin{equation}
+    \label{eqn:glasso}
+log(|Q|) - tr(SQ) - \alpha ||Q||_1
+\end{equation}
+
+where $Q$ is the precision matrix, $S$ is the empirical covariance matrix and $||Q||_1$ is the $l_1$ norm of $Q$, in other words $||Q||_1$ is the sum of all the elements of Q. $\alpha$ is a parameter controlling the sparsity of the resulting matrix $Q$.
+
+Glasso is effectively maximising the log likelihood of the Gaussian given $Q$ ($log(|Q|) + tr(SQ)$) while the penalty term ($\alpha ||Q||_1$) favours a sparse precision matrix. We can note that as we increase $\alpha$ the precision matrix will be sparser and sparser.
+
+We can find $log(|Q|) + tr(SQ)$ from the classic multivariate gaussian formulation:
+
+\begin{align}
+    L &= \sum_n log\left(\frac{1}{\sqrt{(2\pi)^k|\Sigma|}}exp(-\frac{1}{2}(x - \mu)^T\Sigma^{-1}(x - \mu))\right) \\
+L &= -\frac{n}{2}log(|\Sigma|) -\frac{n}{2}(x - \mu)^TQ(x - \mu) -\frac{nk}{2} log(2\pi) \\
+\frac{2}{n}L &= log(|Q|) -(x - \mu)^TQ(x - \mu) - k log(2\pi) \\
+\frac{2}{n}L &=  log(|Q|) -tr(SQ) - k log(2\pi)
+\end{align}
+
+We can see that $log(|Q|) - tr(SQ)$ comes from the terms dependent of $Q$ in the log likelihood function of the multivariate Gaussian.
+
+Moreover, since it has be proven that \eqref{eqn:glasso} is a convex function, the gradient descent will converge to a global maximum and therefore give the exact maximum likelihood estimation of the sparse precision matrix. The Glasso may failed to invertible precision matrix especially for small values of $alpha$ \cite{Banerjee:2008:MST:1390681.1390696}.
+
+We use the Graph lasso implementation of the scikit-learn python library for our analysis \cite{scikit-learn}.
+
+\subsection{Inference in GMRF \label{sec:inference}}
+Inference in a probabilistic model is equivalent to defining the conditional distribution over some variables given some evidence. In the case of a GMRF, if a vector $y$ follows a multivariate Gaussian with mean $\mu$ and precision matrix $Q$, given some evidence $y_B$ and $y_A = y_{-B}$ we have \cite{GMRFbook}:
+
+$$y_A | y_B \sim \mathcal{N}(\mu_A - Q^{-1}_{AA}Q_{AB}(y_B - \mu_B), Q_{AA}^{-1})$$
+
+with the following partition:
+
+$$y = \begin{pmatrix} y_A \\ y_B \end{pmatrix} Q = \begin{pmatrix} Q_{AA} & Q_{AB} \\ Q_{BA} & Q_{BB} \end{pmatrix} \mu = \begin{pmatrix} \mu_A \\ \mu_B \end{pmatrix}$$
+
+Instead of a distribution we may need the most likely value given the conditional distribution. If the form conditional distribution were unknown we would need to sample a lot of value from it to estimate the most likely value. However since a GMRF gives normal conditional distribution we can avoid sampling as we know that the value with the highest probability is its mean.
+
+\section{Dataset}
+
+The company 4energy provided us with a dataset formed by time series measurements taken in one of their data center, whose layout is shown in Figure~\ref{layout}. Their dataset spans over the month of March 2014 with one data points every 15 minutes.
+
+Since we are interested in modeling the temperature of the data center, we select the variables that correspond to this task. We have access to the temperature of 39 racks, each denoted by an alphanumeric code with a letter denoting the row where the racks are placed,for example H3 is on the second row from the top. We also use the outlet temperature of the four Air Handling Units denoted AHU1, AHU2, AHU3 and AHU4. The outlet temperature is basically the temperature of the air coming from the AHUs in order to cool the data center.
+
+\begin{figure}[!htb]
+    \includegraphics{images/layout.png}
+    \caption{Datacenter layout}
+    \label{layout}
+\end{figure}
+
+\section{Spatial relation}
+
+\subsection{Modeling}
+
+We start by only considering the spatial relationship between our variables. By looking at our data without considering the time component, we effectively make the assumption that the samples of our dataset are independent and identically distributed.
+
+We begin by fitting a GMRF using the Glasso algorithm to our dataset. We choose the BIC score to select the parameter $\alpha$ of the Graph lasso. We run the Glasso with $alpha \in [0.01, 0.5]$ and a step size of $0.01$. We plot the results in Figure~\ref{static_bic}. We can see that the Graph Lasso does not find suitable precision matrix for value of $\alpha$ smaller than 0.03 and the minimum of the BIC measure is at 0.03.
+
+\begin{figure}[!htb]
+    \includegraphics{images/static_bic.pdf}
+    \caption{BIC score against parameter $\alpha$ for i.i.d. sampled data}
+    \label{static_bic}
+\end{figure}
+
+The adjacency matrix of the graph corresponding to the precision matrix found by the Graph Lasso for $\alpha = 0.03$ is shown in Figure~\ref{adj_static}.
+
+\begin{figure}[!htb]
+    \includegraphics{images/adj_static.pdf}
+    \caption{Adjacency matrix for our spatial model}
+    \label{adj_static}
+\end{figure}
+
+We can see that the resulting graph is relatively dense and does not favour relationships between racks close together as would seem reasonable. This lack of independence between distant racks is most likely due to our i.i.d. assumption. Indeed, consider two time series $X_t = 2X_{t-1}$ and $Y_t = Y_{t-1} + 1$, $X$ and $Y$ increase together with $t$ and therefore $X_t$ and $Y_t$ are not independent. However if we take into account the previous step of the time series $X_{t-1}$ and $Y_{t-1}$ we can clearly see that $X_t$ and $Y_t$ are independent given $X_{t-1}$ and $Y_{t-1}$. We transpose the same reasoning on our dataset.
+% Correlation aanlysis (linear relationship)
+% Glasso failed to find sparse network
+% Non linear (KL divergence - Correlation ratio)
+
+\section{Spatio-Temporal analysis}
+
+\subsection{Modeling}
+
+% First order markov assumption
+Instead of assuming i.i.d. samples, we recognise that we are dealing with time series and make another assumption namely a first order Markov assumption. In other words, we assume that all variable $X_t$ are independent of all of its past steps given the previous step $X_{t-1}$. Therefore we extend our dataset such as for every variable $X$ we now have two variables $X_t$ and $X_{t-1}$.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics{images/gmrf_bic.pdf}
+    \caption{BIC score against Glasso's $\alpha$ parameter on both original (blue) and transformed (red) data.}
+    \label{fig:gmrf_bic}
+\end{figure}
+
+Once again, we run the Glasso algorithm on this new dataset. Figure~\ref{fig:gmrf_bic} shows the BIC score against the $\alpha$ parameter. The value which gives the minimum BIC is $\alpha = 0.07$, as shown by the blue line.
+
+The corresponding adjacency matrix is shown in Figure~\ref{fig:gmrf_con}. We can see that the graph is much sparser, with a clearer dependence on racks which are close together: $E$s and $H$s racks temperature are strongly dependent as well as $Q$s and $N$s. We can also note that, apart from $Q8$ and $Q11$, all variables $X_t$ are dependent on their corresponding previous step $X_{t-1}$.
+
+We can also note that some edges show dependence that does not seem natural. For example, there is an edge between $E9_t$ and $N19_t$ even though those two racks are distant from each other. We can hypothesise different explanations for those extraneous edges.
+Similarly to the demonstration we gave for the temporal data, those edges may be caused by missing information not included in our model. For example, we know that the workload of the individual racks is unknown, this information may help find more independence relationships. Indeed the workload of those racks may explain the dependence relationship. A similar workload on those two racks would explain that their temperature rises and falls together and thus create a dependence relationship.
+Another hypothesis could be that the model is right and has uncovered dependence that should not exist and that may have been caused by a defect in the design of the data center, with heat transfer between distant racks.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics{images/gmrf_con.pdf}
+    \caption{Adjacency matrix of the graph produced by Glasso. Each filled cell represents an edge. Coloured cells are clusters of racks and AHUs, each colour stands for a row of racks.\label{fig:gmrf_con}}
+
+\end{figure}
+
+\subsection{Evaluation}
+
+% Result of GMRF
+Now that we have build a model linking the previous state to the next, we can infer the next state given the previous state. Moreover, we can also predict the state in $n$-step by iteratively predicting the state at time $t$ and using that value as evidence to predict the state at time $t+1$.
+
+In order to evaluate our model more precisely, we perform a 5-fold cross validation.
+We compute the mean average deviation over those 5 folds as well as the standard error.
+We plot the result for two variables namely $EO6$ in Figure~\ref{fig:res_gmrf_eo6} and $Q8$ in Figure~\ref{fig:res_gmrf_q8}.
+Those two variables are representative of the result we get on all the variables.
+On the one hand, some variables, such as $EO6$, are predicted really accurately with a $R^2$ value really close to one on the first time steps.
+On the other hand, variables such as $Q8$ failed to be predicted with even a slight accuracy. Indeed, even on the first time step, the $R^2$ value is negative, which means that predictions using GMRF are less accurate than a naive predictor, namely the mean of the data.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics{images/gmrf_res_eo6.pdf}
+    \caption{Mean Average Deviation and $R^2$ of $EO6$ as predicted by the GMRF model \label{fig:res_gmrf_eo6}}
+\end{figure}
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics{images/gmrf_res_q8.pdf}
+    \caption{Mean Average Deviation and $R^2$ of $Q8$ as predicted by the GMRF model \label{fig:res_gmrf_q8}}
+\end{figure}
+
+Those discrepancies, between variables which can be accurately predicted and those which do not, suggest that GMRF is not flexible enough to accurately describe and predict our dataset. To check that hypothesis, we remember that the GMRF is equivalent to a multivariate Gaussian.
+
+We can verify that our data is normally distributed using a Quantile-Quantile plot, or QQplot. It can be shown that if some observations are normally distributed, their squared Mahalanobis distance follows a Chi-squared distribution with $k$ degree of freedom where $k$ is the number of variables in the dataset \cite{burdenski2000evaluating}. The squared Mahalobonis distance can be defined as :
+
+$$d^2(x) = (x - \mu)^T \Sigma^{-1} (x - \mu)$$
+
+where $\mu$ is the mean and $\Sigma^{-1}$ the covariance of the data. If the sorted squared Mahalobonis distance plotted against the Chi-squared quantiles follow the identity line then, the data follows a multivariate Gaussian.
+
+The QQplot of our dataset is shown in Figure~\ref{fig:gmrf_qqplot}. As we can see the squared Mahalobonis distance is far below the identity line which demonstrate that our data is not normally distributed. This in turn explain why our model cannot predict some variables accurately.
+
+% QQplot
+\begin{figure}[!htb]
+    \centering
+    \includegraphics{images/gmrf_qqplot.pdf}
+    \caption{QQplot of the squared Mahalobonis distance of the original dataset against Chi squared distribution quantiles\label{fig:gmrf_qqplot}}
+\end{figure}
+
+As we have seen, Gaussian Markov Random Fields assume that the data is normally distributed and this relatively strong assumption may not suit some data as for our present case.
+However, this assumption can be relaxed thanks to nonparanormal distribution.
+A vector $X = (X_1, \dots, X_n)$ is said to follow a nonparanormal distribution if $f(X) = (f_1(X_1), \dots, f_n(X_n))$ follows a normal distribution \cite{Liu:2009:NSE:1577069.1755863}. The nonparanormal distribution is clearly larger than the normal distribution. We can estimate the function $f$ with \cite{IOPORT.02247280}:
+
+$$f_n(t) = \mu_n + \sigma_n\Phi^{-1}\left(\frac{n F_n(t)}{n+1}\right)$$
+
+where $\mu_n$ and $\sigma_n$ are the mean and standard deviation of the variable $X_n$, $\Phi^{-1}$ is the inverse cumulataive distribution function of the univaritate normal distribution, $N(0, 1)$ and $F_n$ is the empirical cumulataive distribution function of the variable $X_n$:
+
+$$F_n(t) = \frac{1}{n} \sum^n_{i=1} 1_{X^{(i)}_n \leq t}$$
+
+We can then apply the Glasso to the transformed data, and as for the classic GMRF, the structure of the graph is encoded by the precision matrix.
+However if we apply the transformation described above on our dataset and then use a QQplot as described above to see if the transformed data follows a multivariate Gaussian, we can see in Figure \ref{fig:nonparam_qqplot} that our data does not follow a nonparanormal distribution. And this is why the BIC measures on the transformed dataset shown by the red line in Figure~\ref{fig:gmrf_bic} does not exhibit any improvement over the original data.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics{images/nonparam_qqplot.pdf}
+    \caption{QQplot of squared Mahalobonis distance of the transformed dataset against Chi squared distribution quantiles\label{fig:nonparam_qqplot}}
+\end{figure}
+
+\subsection{Simulation}
+
+Apart from the predictive accuracy of the model, another important feature for future development the creation of meaningful simulations of the datacenter and especially being able simulate the temperature of the racks under different control temperature (ie the temperature of the AHUs' outlet).
+It can be particularly challenging to correctly simulate data from a model. Indeed, by definition the simulation may ask the model to predict temperature under conditions not seen in the training data.
+
+We use an heatmap to visualise how our simulation is behaving. We run different simulation using data as a starting point and then changing the controls values for different time steps. Two of those experiments are plotted in Figure~\ref{fig:gmrf_simu_1} and Figure~\ref{fig:gmrf_simu_2}
+
+% Simulated heatmap 1
+\begin{figure*}
+\centering
+
+\begin{subfigure}[t]{0.45\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/heatapp_gmrf_2_t0.png}
+\caption{$t = 0$}
+\end{subfigure}%
+%
+% \hfill
+%
+\begin{subfigure}[t]{0.45\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/heatapp_gmrf_2_t1.png}
+\caption{$t = 1$}
+\end{subfigure}
+
+\bigskip
+
+\begin{subfigure}[t]{0.45\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/heatapp_gmrf_2_t4.png}
+\caption{$t = 4$}
+\end{subfigure}%
+%
+% \hfill
+%
+\begin{subfigure}[t]{0.45\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/heatapp_gmrf_2_t8.png}
+\caption{$t = 8$}
+\end{subfigure}
+
+\caption{Simulated heatmap of the datacenter for different time steps, time $t=0$ correspond to the data point starting the simulation. The controls used are AHU1: 30\degree C, AHU2: 30\degree C, AHU3: 5\degree C, AHU4: 5\degree C,\label{fig:gmrf_simu_1}}
+\end{figure*}
+
+% Simulated heatmap 2
+\begin{figure*}
+\centering
+
+\begin{subfigure}[t]{0.45\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/heatapp_gmrf_1_t0.png}
+\caption{$t = 0$}
+\end{subfigure}%
+%
+% \hfill
+%
+\begin{subfigure}[t]{0.45\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/heatapp_gmrf_1_t1.png}
+\caption{$t = 1$}
+\end{subfigure}
+
+\bigskip
+
+\begin{subfigure}[t]{0.45\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/heatapp_gmrf_1_t4.png}
+\caption{$t = 4$}
+\end{subfigure}%
+%
+% \hfill
+%
+\begin{subfigure}[t]{0.45\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/heatapp_gmrf_1_t8.png}
+\caption{$t = 8$}
+\end{subfigure}
+
+\caption{Simulated heatmap of the datacenter for different time steps, time $t=0$ correspond to the data point starting the simulation. The controls used are AHU1: 5\degree C, AHU2: 5\degree C, AHU3: 30\degree C, AHU4: 30\degree C,\label{fig:gmrf_simu_2}}
+\end{figure*}
+
+The simulation results show that the simulated racks temperature respond correctly to the controls of AHU1 and AHU2. Indeed the temperature of the three top racks rows increases when AHU1 and AHU2 are set to 30\degree C and decreases when they are set to 5\degree C. However, the controls of AHU3 and AHU4 do not have any effect of the racks temperature. The temperature of the bottom row, the closest to AHU3 and AHU4, stays constant whatever the chosen value for the controls. This behaviour can be explained for AHU4 since it seems to be power off in the dataset, its power consumption is always close to zero. However, the control of AHU3 should change the temperature of the racks. This simulation problem is likely to have the same cause as the inaccuracy of predictions for some racks, and especially the racks on the bottom row. This is once again an evidence that the representative power of the GMRF does not suit our dataset.
+
+\chapter{Finding a better model}
+
+In this chapter we investigate a model with more representative power to improve the accuracy of our predictions.
+
+\section{Bayesian Networks}
+
+Bayesian Networks, also called belief networks, form the other main class of probabilistic graphical models \cite{Pearl:1988:PRI:534975}. As such, they are representations of joint probability distribution. Similarly to a Markov Random Field, a Bayesian Network leverage variables independence to simplify the parametrisation of the joint distribution. However, unlike MRF which uses undirected graph, the graphical representation of a Bayesian Network is a directed acyclic graph (DAG). A directed acyclic graph is a directed graph without directed cycles. Given a DAG, the corresponding Bayesian Network distribution of a set of variables $\{X_1, \dots, X_n\}$ can be computed by:
+
+$$p(X_1, \dots, X_n) = \prod^{n}_{i=1} p(X_i | pa(X_i))$$
+
+where $pa(X_i)$ is the set of parents of variable $X_i$ in the graph. More formally, given the DAG $G$: $\{V, E\}$ where $V$ is the set of vertices and $E$ the set of edges in the graph, $pa(X_i)$ = $\{X_p : (X_p, X_i) \in E, X_p \in V\}$.
+
+For example the joint distribution of the DAG in Figure~\ref{fig:bn_ex} is:
+
+$$p(a, b, c, d) = p(a)p(b)p(c|a, b)p(d|c)$$
+
+\begin{figure}[!htb]
+    \includegraphics{images/bn_ex.pdf}
+    \caption{Example of a Bayesian Network}
+    \label{fig:bn_ex}
+\end{figure}
+
+The other main difference with Markov Random Field is that, in a MRF a variable is independent of all the other variables given its direct neighbours. In a Bayesian network however a variable is independent of all the others given its Markov blanket. The Markov blanket of a variable is formed of the parents, the children and the parents of children of the variable.
+
+% \textbf{Example \dots}
+
+% \subsection{Parameters Learning for discrete variables}
+
+% In order to express the joint distribution, we need to learn the parameters of $p(X_i | pa(X_i))$ for all $X_i$. For discrete variables with $k$ states, $p(X_i | pa(X_i))$ can be represented by $k^{|pa(X_i)| + 1}$ parameters. These parameters can be learned from data. Given a dataset of N samples, the maximum likelihood estimation the parameters follows:
+%
+% $$p(X_i = x | pa(X_i)_1 = p_1, \dots, pa(X_i)_n = p_n) = \frac{S_{x, p}}{N} $$
+%
+% where $S_{x, p}$ is simply the number of samples for whom $X_i = x, pa(X_i)_1 = p_1, \dots, pa(X_i)_n = p_n$ \cite{Neapolitan:2003:LBN:1198020}.
+%
+% \textbf{Example continues \dots}
+
+\subsection{Linear Gaussian networks}
+
+Linear Gaussian networks are Bayesian Networks with continuous variables, where the conditional probability $p(X_i | pa(X_i))$ is expressed as:
+
+$$p(X_i | pa(X_i)) = \mathcal{N}\left(b_i + \sum_{X_j \in pa(X_i)} w_j X_j, \sigma_i^2\right)$$
+
+where $w_j$ and $b_i$ are parameters and $\sigma_i^2$ is the variance of the conditional distribution.
+
+It can be shown that linear Gaussian Beysian network describes a multivariate Gaussian \cite{Bishop:2006:PRM:1162264}.
+
+We can derive the maximum likelihood estimation of the parameters by following \cite{Koller:2009:PGM:1795555}.
+
+\subsection{Inference in Linear Gaussian networks}
+
+Several algorithm are available to perform inference in Bayesian network. The most general algorithm is the message-passing algorithm which has been defined for Linear Gaussian networks \cite{Neapolitan:2003:LBN:1198020}.
+
+We can also notice that a Linear Gaussian network defines a multivariate Gaussian. Therefore we can use the equation described in section~\ref{sec:inference}. The advantage of this technique is its simplicity. However, it does not exploit the local factorisation of Bayesian networks and the inversion of the precision matrix may be prohibitively expensive for large network.
+
+% \textbf{Parameters learning \dots}
+
+\subsection{Structure Learning}
+
+In order to fully specifed the Bayesian Network, we need to specify the DAG representing our network. Learning the DAG is especially expensive as the number of possible graph increase exponentially with the number of vertices. In fact the number of possible DAGs with $n$ nodes in given by the recursive function, $f(n)$ \cite{Robinson:1977}:
+
+\begin{align}
+    f(0) &= 1 \\
+    f(n) &= \sum^n_{i=1} -1^{i+1} \binom ni 2^{i(n - i)} f(n - i)
+\end{align}
+
+Because of that, the structure of very large network may have to be given by an expert. However, the structure of networks with fewer nodes can also be learned from data. In that case, structure learning can be view as a search problem. Since the number of possible networks grows exponentially, finding the globally optimal network is rarely possible and local optimum procedure must be used. Hill climbing is one of such procedure. To implement hill climbing in the context of Bayesian network we need a way to score a network. BIC is a natural candidate and in the context of Bayesian network is called Minimun Description Length (MDL) \cite{Rissanen:1989:SCS:534258}. Furthermore, we need to define what a network's neighbour is. The neighbour of a Bayesian network is obtained by either adding, removing or reversing a edge from the BN's graph while making sure that this operation does not create a cycle in the network. We present the algorithm to learn structure in Algorithm~\ref{bnStructureAlgo}.
+
+\begin{algorithm}
+
+    \KwData{Dataset D, Graph G = (V, $\emptyset$)}
+    \KwResult{Bayesian network G = (V, E)}
+    score = 0;
+    score' = 1\;
+    \While{score' $>$ score}{
+        score = BIC(G)\;
+         \For{( n in neighbours(G) )}{
+             neighbourScores[n] = BIC(n)\;
+           }
+
+           score' = max(neighbourScores)\;
+
+           \If{score' $>$ score}{
+               G' = argmax(neighbourScores)\;
+               G = G'
+           }
+    }
+
+    return G'\;
+\caption{Structure learning for Bayesian network. Reproduced from \cite{Freno2009603}}
+\label{bnStructureAlgo}
+
+\end{algorithm}
+
+% \subsection{Inference}
+% Message Passing
+% Inference (Conditional Gaussian)
+
+\section{Hybrid Random Fields}
+
+Before presenting Hybrid Random Fields, we must present a result from \cite{Pearl:1988:PRI:534975}. If we note $\mathcal{BN}$ and $mathcal{MRF}$ as the set of distributions which can be, respectively, represented by a Baysian Network and a Markov Random Field, we have:
+
+\begin{align}
+    \mathcal{BN} \cap \mathcal{MRF} \neq 0 \\
+    \mathcal{BN} \setminus \mathcal{MRF} \neq 0 \\
+    \mathcal{MRF} \setminus \mathcal{BN} \neq 0
+\end{align}
+
+This means that some distribution can be represented by either a Bayesian Network or a Markov Random Field, a trivial example would be the multivaraite Gaussian as we have seen can be represented by a GMRF or a Linear Gaussian network. The result also states that some distribution reprensentable by a Bayesian Network can not be represented by a Markov Random Fields and vice versa.
+
+This result is important since Hybrid Random Fields is a effort developped recently to unify the distributions representable by the two main probabilistic graphical models. Indeed if we note $\mathcal{HRF}$ the set of distribution representable by a Hybrid Random Field, we have \cite{freno2011introducing}:
+
+$$\mathcal{HRF} = \mathcal{BN} \cup \mathcal{MRF}$$
+
+This tells us that a Hybrid Radnom Fields can representa any distribution representable by a Bayesian network or a Markov Random Field or both.
+
+A Hybrid Random Field (HRF) is effectively a set of Bayesian Networks. For each variable in the dataset, the HRF defines a Bayesian Network. A HRF can be learned by a algorithm called Markov Blanket Merging \cite{Freno2009603}.
+
+% \begin{algorithm}
+
+%     \KwData{Set of variables X : $X_1$, \dots, $X_n$; dataset D; interger $k$, $k^*$}
+%     \For{i = 1 to n}{
+%     $\mathcal{R}_i$ = \{X_j in X \setminus X_i\} with $k$-min correlation ration\;
+%     }
+
+%     assignementWasRefined = true\;
+%     \While{assignementWasRefined}{
+%         \For{i = 1 to n}{
+%             $\mathcal{R}_i$ = \{$X_j$ in X \setminus $X_i$\} with $k$-min correlation ration\;
+%         }
+%         \If{score' $>$ score}{
+%             G' = argmax(neighbourScores)\;
+%             G = G'
+%         }
+%     }
+
+% \caption{Markov Blanket Merging algorithm. Reproduced from \cite{Freno2009603}}
+% \label{algo:mbm}
+
+% \end{algorithm}
+
+
+% Correlation ratio (non-linear relationship) - Hybrid Random Fields (set of Multivariate gaussian)
+
+\subsection{Modeling}
+
+We implement a Hybrid Random Field with linear Gaussian Bayesian networks and fit it to our dataset with temporal features.
+
+The global adjacency matrix of the model is shown in Figure~\ref{fig:hrf_model}. This adjacency matrix was produced by filling a cell if the corresponding edge exist in at least on of the Bayesian Network in our HRF. Since the edges are directed the matrix is not symmetrical.The origins of the edges are on the rows of the matrix and the destination on the columns. However since a HRF can exhibit cycles in its global structure, some of the edges are directed in both direction. Indeed this is the case between most variable at time $t$ and their antecedent at time $t-1$.
+
+\begin{figure}
+    \centering
+    \includegraphics{images/hrf_model.pdf}
+    \caption{Adjacency matrix of the global structure of our Hybrid Random Field.\label{fig:hrf_model}}
+\end{figure}
+
+The adjacency matrix in Figure~\ref{fig:hrf_model} is very sparse but still exhibits relevant dependencies. Indeed all the variables connected to their predecessor. Moreover, the racks which are close together are more likely to be connected.
+
+\subsection{Evaluation}
+
+Using the same procedure as described in Chapter 3, we evaluate our model. Similarly to what we did before, we show the mean average deviation of the predictions for $EO6$ and $Q8$, respectively in Figure~\ref{fig:comp_eo6} and Figure~\ref{fig:comp_q8}. We can see that the Hybrid Random Field greatly improves the prediction for those two variables compared to the GMRF model. The same result can be seen for all the variables in our dataset as shown in Figure~\ref{fig:nutshell}.
+Moreover, while the GMRF failed to make accurate prediction on some variables, for which the $R^2$ value was negative, it is no longer the case with Hybrid Random Field. Using the latter model, the predictions for the first few steps have a positive $R^2$ value for all the variable.
+
+% Result of HRF - More accurate and better R2 than GMRF on first steps - Simulated heatmap
+%
+% \begin{figure}
+%     \centering
+%     \includegraphics{images/bns.pdf}
+%     \caption{Bayesian Networks for H3, H6, K4, AHU1.\label{fig:bns}}
+% \end{figure}
+\begin{figure}
+    \centering
+    \includegraphics{images/comp_eo6.pdf}
+    \caption{Mean Absolute Error (MAE), along with standard error, as well as $R^2$ value of predictions on rack EO6 using GMRF (blue) and HRF (orange) models.\label{fig:comp_eo6}}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics{images/comp_q8.pdf}
+    \caption{Mean Absolute Error, along with standard error, as well as $R^2$ value of predictions on rack Q8 using GMRF (blue) and HRF (orange) models.\label{fig:comp_q8}}
+\end{figure}
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics{images/nutshell.pdf}
+    \caption{Comparison between GMRF (blue) and HRF (orange) of the Mean Average Deviation for all the variables while predicting one step ahead}
+    \label{fig:nutshell}
+\end{figure}
+
+We now explain why HRF outperforms GMRF in term of predictive accuracy. An Hybrid Random Field is a set of Bayesian networks, and in our case a set of linear Gaussian Bayesian networks. Since a linear Gaussian Bayesian network can be represented as a multivariate Gaussian, our HRF model is effectively a set of multivariate Gaussian. Therefore it is clear that compared to the single multivariate Gaussian fitted by the GMRF, our hybrid model has more representative power.
+
+Using the same QQplot technique as in Chapter 3, we can visualise how well the variables in each linear Gaussian Bayesian network fits a multivariate Gaussian. We show in Figure~\ref{fig:qqplot_hrf_eo6} the QQplot for the network predicting the variable $EO6$ and in Figure~\ref{fig:qqplot_hrf_q8} the QQplot for the network predicting $Q8$.
+
+The QQplots show a better fit for the multivariate Gaussian. Even if some outliers appears as the squared Mahalobonis distance increase, most of the data sit closely on the identity line which shows that the variables used in the linear Gaussian networks are nearly normally distributed especially when close to their mean.
+
+% QQplot
+\begin{figure}[!htb]
+    \centering
+    \includegraphics{images/hrf_qqplot_eo6.pdf}
+    \caption{QQplot of squared Mahalobonis distance against Chi squared distribution quantiles\label{fig:qqplot_hrf_eo6} for the network predicting $EO6$ variable}
+\end{figure}
+
+% QQplot
+\begin{figure}[!htb]
+    \centering
+    \includegraphics{images/hrf_qqplot_q8.pdf}
+    \caption{QQplot of squared Mahalobonis distance against Chi squared distribution quantiles\label{fig:qqplot_hrf_q8} for the network predicting $Q8$ variable}
+\end{figure}
+
+\subsection{Simulation}
+
+Similarly to the simulations we performed in Chapter 3, we simulate the temperature of the racks for different controls values, and show the results in Figure~\ref{fig:hrf_simu_1} and Figure~\ref{fig:hrf_simu_2}.
+
+Contrary to the previous simulations, here, the temperature of the racks do not change according to the outlet values. If we look back at our connectivity matrix in Figure~\ref{fig:hrf_model}, we can understand why this is. We can see that the controls variables $AHU_1$ to $AHU_4$ are only directly connected to five racks: $EO6$, $E20$, $H6$, $H22$ and $Q4A$. This explains why the controls does not play a significant part in our model.
+
+This is problematic for our long term objective of building an automated control system since a prerequisite of building such a system is to be able to describe and model the interactions between our controls, the AHUs, and our state, the racks temperatures.
+
+Obtaining the workload information for the racks may help in that regard.
+% Simulated heatmap 1
+\begin{figure*}
+\centering
+
+\begin{subfigure}[t]{0.45\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/heatapp_hrf_1_t0.png}
+\caption{$t = 0$}
+\end{subfigure}%
+%
+% \hfill
+%
+\begin{subfigure}[t]{0.45\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/heatapp_hrf_1_t1.png}
+\caption{$t = 1$}
+\end{subfigure}
+
+\bigskip
+
+\begin{subfigure}[t]{0.45\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/heatapp_hrf_1_t4.png}
+\caption{$t = 4$}
+\end{subfigure}%
+%
+% \hfill
+%
+\begin{subfigure}[t]{0.45\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/heatapp_hrf_1_t8.png}
+\caption{$t = 8$}
+\end{subfigure}
+
+\caption{Simulated heatmap of the datacenter for different time steps, time $t=0$ correspond to the data point starting the simulation. The controls used are AHU1: 30\degree C, AHU2: 30\degree C, AHU3: 5\degree C, AHU4: 5\degree C,\label{fig:hrf_simu_1}}
+\end{figure*}
+
+% Simulated heatmap 2
+\begin{figure*}
+\centering
+
+\begin{subfigure}[t]{0.45\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/heatapp_hrf_2_t0.png}
+\caption{$t = 0$}
+\end{subfigure}%
+%
+% \hfill
+%
+\begin{subfigure}[t]{0.45\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/heatapp_hrf_2_t1.png}
+\caption{$t = 1$}
+\end{subfigure}
+
+\bigskip
+
+\begin{subfigure}[t]{0.45\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/heatapp_hrf_2_t4.png}
+\caption{$t = 4$}
+\end{subfigure}%
+%
+% \hfill
+%
+\begin{subfigure}[t]{0.45\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/heatapp_hrf_2_t8.png}
+\caption{$t = 8$}
+\end{subfigure}
+
+\caption{Simulated heatmap of the data center for different time steps, time $t=0$ correspond to the data point starting the simulation. The controls used are AHU1: 5\degree C, AHU2: 5\degree C, AHU3: 30\degree C, AHU4: 30\degree C,\label{fig:hrf_simu_2}}
+\end{figure*}
+
+% tables with all variables
+% Compare number of parameters, Scatter matrix, Chi squared thingy
+% Simu
+
+\chapter{Conclusion}
+
+\section{Contributions}
+
+We fitted different probabilistic graphical models to our dataset and showed that a commonly used network such as GMRF failed to appropriately describe our data even using its nonparanormal extension. We implemented and tested on a real dataset a Hybrid Random Field which is a recently developed idea is the domain of probabilistic graphical model.
+
+We investigated how our models behaved during simulations with control signals that does not exist in the original dataset.
+
+\section{Future Works}
+Many areas of our work can be subject to improvements:
 \begin{itemize}
-    \item Lack of workload variables per racks
-    \item Extend probabilistics model with nonparametric versions - use MCMC, Gibbs sampling
-    \item Further investigate controls, more reinforcement learning but also rule-based, optimal controls \dots
+    \item First our dataset is rather limited both in term of time, it only spans over one month, but also in term of space, we only have the data for one data center. It would be interesting to show if our model generalise  well outside those conditions. Moreover, some variables that seemed important were lacking in our dataset, such as the workload per racks. Obtaining those variables and investigate the changes they may cause in the structure of our graph might bring some further insight in our analysis.
+    \item In place of getting more data one could also acknowledge the missing variables and include hidden variables in our model. Our Hybrid Random Field can be extended with hidden variables by following the principle of "ideal parent" \cite{DBLP:journals/corr/abs-1207-4133}.
+    \item Our models are all parametric and assumes some kind of normality in the data. One could remove that assumption by dealing with nonparametric models. For example one could try and implement a Nonparametric Hybrid Random Field \cite{freno2011extending}.
 \end{itemize}
 
+% \begin{appendices}
+%     \chapter{GMRF Additional Results}
+%     \input{tables/gmrf.tex}
+
+%     \chapter{Hybrid Additional Results}
+%     \input{tables/hybrid.tex}
+% \end{appendices}
+
+\clearpage
+\bibliographystyle{plain}
+\bibliography{biblio}
 
 \end{document}
