@@ -23,7 +23,9 @@ datacenter_layout.update(
 datacenter_inlets_layout = datacenter_layout.copy()
 datacenter_inlets_layout.update(
     {'ahu_1_air_on': (5, 13), 'ahu_2_air_on': (11, 13),
-     'ahu_3_air_on': (5, -1), 'ahu_4_air_on': (11, -1)})
+     'ahu_3_air_on': (5, -1), 'ahu_4_air_on': (11, -1),
+     'ahu_1_power': (5, 12), 'ahu_2_power': (11, 12),
+     'ahu_3_power': (5, 0), 'ahu_4_power': (11, 0)})
 
 full_layout = datacenter_inlets_layout.copy()
 full_layout.update(
