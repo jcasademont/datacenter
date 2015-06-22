@@ -35,7 +35,7 @@ class GMRF(GaussianModel):
         elif self.method_ == 'bic':
             min_score = np.inf
             min_precision = None
-            alphas = np.arange(0.0, 5.0, 0.1)
+            alphas = np.arange(0.01, 0.5, 0.01)
 
             for a in alphas:
                 if self.verbose:
@@ -43,17 +43,19 @@ class GMRF(GaussianModel):
 
                 gl = GraphLasso(a, max_iter=100000)
 
-                gl.fit(X)
-                self.precision_ = gl.precision_
-                score, converged = self.bic(X, gamma=0.0)
+                try:
+                    gl.fit(X)
+                    self.precision_ = gl.precision_
+                    score = self.bic(X, gamma=0.0)
 
-                if converged:
                     self.bic_scores.append(score)
 
                     if score <= min_score:
                         min_score = score
                         self.alpha_ = a
                         min_precision = np.copy(self.precision_)
+                except:
+                    self.bic_scores.append(None)
 
             self.precision_ = min_precision
 
@@ -89,20 +91,11 @@ class GMRF(GaussianModel):
             x = X[i, :]
             l = self._logpdf(x, mean, Q)
 
-            if l <= 0:
-                ll += l
-            else:
-                failures += 1
+            ll += l
 
         ratio_failure = failures / X.shape[0]
-        if ratio_failure != 0.0:
-            warnings.warn("Ratio of failure = {}".format(ratio_failure))
 
-        if ll > 0:
-            raise ValueError("Log likelihood ( = {} ) \
-                              greater than zero".format(ll))
-
-        return ll, ratio_failure < 0.01
+        return ll
 
     def bic(self, X, gamma=0):
         self.check()
@@ -114,7 +107,7 @@ class GMRF(GaussianModel):
         nb_params =  n + n * (n - 1) / 2 \
                         - (len(Q[Q == 0]) - len(d[d == 0])) / 2
 
-        ll, converged = self.log_likelihood(X)
+        ll = self.log_likelihood(X)
 
         return -2 * ll + nb_params * np.log(X.shape[0]) \
-            + 4 * nb_params * gamma * np.log(X.shape[1]), converged
+            + 4 * nb_params * gamma * np.log(X.shape[1])
