@@ -32,7 +32,7 @@ def main(method, transform, temporal, layout, hybrid, threshold, output):
     X = df.values
 
     if hybrid:
-        model = HRF(variables_names=df.columns.values)
+        model = HRF(k=5, k_star=10, variables_names=df.columns.values)
     else:
         model = GMRF(method=method[0])
 
